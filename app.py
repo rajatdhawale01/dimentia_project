@@ -13,8 +13,8 @@ app = Flask(__name__)
 app.secret_key = "replace-with-a-strong-secret-key"
 
 
-RECAPTCHA_SITE_KEY = '6Leia9grAAAAANlSX7hcOxUh5afONz77LG8twThz'
-RECAPTCHA_SECRET_KEY = '6Leia9grAAAAAMJsKqvuRZ9ewNxSzgnnPFUoBP5a'
+RECAPTCHA_SITE_KEY = '6LdMetgrAAAAAMYFn4ibFJVeKSG0KnGekxiTBgW7'
+RECAPTCHA_SECRET_KEY = '6LdMetgrAAAAABt6VK9jYB-e7h8T4eLUGlhmo9Hf'
 
 # Demo users (username -> password); in real apps use a DB + hashing
 DEMO_USERS = {
