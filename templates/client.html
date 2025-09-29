@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Client · Flask Sections App{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h1 class="h4 mb-0">Client</h1>
+  <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('home') }}">← Back</a>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    <p class="text-muted">This is the Client section. Add client project UI here.</p>
+
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label">New Project</label>
+        <input id="clientProjectName" class="form-control" placeholder="Project name" />
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Due Date</label>
+        <input id="clientDue" type="date" class="form-control" />
+      </div>
+      <div class="col-12">
+        <button class="btn btn-primary" onclick="addClientProject()">Add Project</button>
+      </div>
+    </div>
+
+    <hr class="my-4" />
+
+    <h2 class="h6">Projects</h2>
+    <ul id="clientProjectList" class="list-group small"></ul>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}Sign in · Flask Sections App{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-lg overflow-hidden">
+      <div class="row g-0">
+        <!-- Left: Brand/Illustration -->
+        <div class="col-md-5 d-none d-md-block bg-dark text-white position-relative">
+          <div class="h-100 d-flex flex-column justify-content-between p-4">
+            <div>
+              <div class="badge bg-primary mb-3">Welcome</div>
+              <h2 class="h4 fw-semibold mb-2">Sign in to continue</h2>
+              <p class="text-white-50 mb-0">Access Customer, Client & Admin sections from a single dashboard.</p>
+            </div>
+            <div class="small text-white-50">
+              <span class="opacity-75">Tip:</span> Demo users — <code>rajat/pass123</code>, <code>admin/admin123</code>, <code>guest/guest</code>
+            </div>
+          </div>
+          <svg class="position-absolute bottom-0 end-0" width="180" height="180" viewBox="0 0 180 180" fill="none" aria-hidden="true">
+            <circle cx="140" cy="140" r="140" fill="rgba(255,255,255,0.06)"></circle>
+          </svg>
+        </div>
+
+        <!-- Right: Form -->
+        <div class="col-md-7 bg-white">
+          <div class="p-4 p-md-5">
+            <div class="mb-4">
+              <h1 class="h4 mb-1">Sign in</h1>
+              <p class="text-muted mb-0">Enter your credentials to continue.</p>
+            </div>
+
+            <form method="post" novalidate>
+              <!-- Username -->
+              <div class="mb-3">
+                <label for="username" class="form-label">Username</label>
+                <div class="input-group">
+                  <span class="input-group-text" id="username-addon">@</span>
+                  <input
+                    id="username"
+                    name="username"
+                    type="text"
+                    class="form-control"
+                    placeholder="e.g., rajat"
+                    aria-describedby="username-addon"
+                    autocomplete="username"
+                    required>
+                </div>
+              </div>
+
+              <!-- Password + show/hide -->
+              <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <div class="input-group">
+                  <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    class="form-control"
+                    placeholder="Your password"
+                    autocomplete="current-password"
+                    required>
+                  <button class="btn btn-outline-secondary" type="button" id="togglePassword" aria-label="Show password">Show</button>
+                </div>
+              </div>
+
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="rememberMe">
+                  <label class="form-check-label" for="rememberMe">Remember me</label>
+                </div>
+                <!-- (Optional) Forgot link -->
+                <!-- <a href="#" class="small">Forgot password?</a> -->
+              </div>
+
+              <!-- reCAPTCHA -->
+              <div class="mb-3">
+                <div
+                  class="g-recaptcha"
+                  data-sitekey="{{ recaptcha_site_key }}"
+                  data-callback="onRecaptchaSuccess"
+                  data-expired-callback="onRecaptchaExpired">
+                </div>
+              </div>
+
+              <!-- Submit -->
+              <div class="d-grid">
+                <button id="submitBtn" class="btn btn-primary" type="submit" disabled>
+                  Sign In
+                </button>
+              </div>
+            </form>
+
+            <!-- Small helper text -->
+            <p class="text-muted small mt-3 mb-0">
+              By continuing you agree to our <a href="#" tabindex="-1">Terms</a> and <a href="#" tabindex="-1">Privacy Policy</a>.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile demo users note -->
+    <div class="d-md-none text-center text-muted small mt-3">
+      Demo users: <code>rajat/pass123</code> · <code>admin/admin123</code> · <code>guest/guest</code>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Subtle polish */
+  .card .input-group-text { background: #f8f9fa; }
+  .card .form-control:focus { box-shadow: 0 0 0 .2rem rgba(13,110,253,.1); }
+</style>
+
+<!-- reCAPTCHA script -->
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
+<script>
+  // Show/Hide password
+  const toggleBtn = document.getElementById('togglePassword');
+  const pwdInput = document.getElementById('password');
+  toggleBtn.addEventListener('click', () => {
+    const isPwd = pwdInput.type === 'password';
+    pwdInput.type = isPwd ? 'text' : 'password';
+    toggleBtn.textContent = isPwd ? 'Hide' : 'Show';
+    toggleBtn.setAttribute('aria-label', isPwd ? 'Hide password' : 'Show password');
+  });
+
+  // Disable submit until CAPTCHA complete
+  const submitBtn = document.getElementById('submitBtn');
+  function onRecaptchaSuccess() {
+    submitBtn.disabled = false;
+  }
+  function onRecaptchaExpired() {
+    submitBtn.disabled = true;
+  }
+
+  // Little UX: press Enter in password submits if CAPTCHA ok
+  pwdInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !submitBtn.disabled) {
+      e.currentTarget.form?.submit();
+    }
+  });
+</script>
+{% endblock %}

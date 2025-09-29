@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+{% block title %}Customer · Flask Sections App{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h1 class="h4 mb-0">Customer</h1>
+  <div class="d-flex gap-2">
+    <button id="muteBtn" class="btn btn-outline-secondary btn-sm">Mute</button>
+    <button id="stopBtn" class="btn btn-outline-danger btn-sm">Stop</button>
+    <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('home') }}">← Back</a>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- Categories -->
+  <div class="col-md-3">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h2 class="h6 mb-3">Categories</h2>
+        {% if categories %}
+          <div class="list-group">
+            {% for cat in categories %}
+              <a
+                href="{{ url_for('customer') }}?category={{ cat }}"
+                class="list-group-item list-group-item-action {% if selected_category == cat %}active{% endif %}">
+                {{ cat|capitalize }}
+              </a>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="text-muted small mb-0">No categories found. Create folders inside <code>static/customer_images/</code>.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Images -->
+  <div class="col-md-9">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between">
+          <h2 class="h6 mb-0">
+            {% if selected_category %}
+              {{ selected_category|capitalize }} Images
+            {% else %}
+              Images
+            {% endif %}
+          </h2>
+          {% if selected_category %}
+            <span class="text-muted small">{{ images|length }} item(s)</span>
+          {% endif %}
+        </div>
+        <hr class="my-3" />
+        {% if selected_category and images %}
+          <div class="gallery-grid">
+            {% for item in images %}
+              <div class="gallery-card">
+                <a
+                  href="{{ url_for('static', filename=item.img) }}"
+                  data-bs-toggle="modal"
+                  data-bs-target="#imgModal"
+                  data-img="{{ url_for('static', filename=item.img) }}"
+                  {% if item.audio %}
+                  data-audio="{{ url_for('static', filename=item.audio) }}"
+                  {% endif %}
+                >
+                  <img class="img-fluid rounded shadow-sm" src="{{ url_for('static', filename=item.img) }}" alt="{{ item.name }}">
+                </a>
+                <div class="small mt-2 text-truncate" title="{{ item.name }}">
+                  {{ item.name }}
+                  {% if item.audio %}
+                  <span class="badge bg-light text-dark border align-middle ms-1">🔊</span>
+                  {% endif %}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% elif selected_category and not images %}
+          <p class="text-muted mb-0">No images inside <code>static/customer_images/{{ selected_category }}/</code>.</p>
+        {% else %}
+          <p class="text-muted mb-0">Select a category to view images.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal for image preview -->
+<div class="modal fade" id="imgModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-body p-0">
+        <img id="imgModalPic" class="w-100 h-auto" alt="preview">
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <a id="imgDownloadLink" class="btn btn-primary" href="#" download>Download</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Customer gallery */
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 14px;
+  }
+  .gallery-card img {
+    object-fit: cover;
+    width: 100%;
+    height: 140px;
+  }
+  /* Highlight currently playing */
+  .gallery-card a.playing img {
+    outline: 3px solid rgba(220, 53, 69, 0.5); /* Bootstrap danger tint */
+    outline-offset: 2px;
+  }
+</style>
+
+<script>
+  // ------- Modal preview -------
+  const imgModal = document.getElementById('imgModal');
+  imgModal.addEventListener('show.bs.modal', (event) => {
+    const trigger = event.relatedTarget;
+    const src = trigger?.getAttribute('data-img');
+    const imgEl = document.getElementById('imgModalPic');
+    const downEl = document.getElementById('imgDownloadLink');
+    if (src && imgEl && downEl) {
+      imgEl.src = src;
+      downEl.href = src;
+    }
+  });
+
+  // ------- Background audio player -------
+  window._bgAudio = new Audio();
+  _bgAudio.preload = "auto";
+  _bgAudio.autoplay = true; // starts on product click
+  _bgAudio.loop = false;
+  _bgAudio.volume = 1.0;
+
+  let _currentAnchor = null;
+
+  function markPlaying(anchor) {
+    if (_currentAnchor) _currentAnchor.classList.remove('playing');
+    _currentAnchor = anchor || null;
+    if (_currentAnchor) _currentAnchor.classList.add('playing');
+  }
+
+  function stopPlayback() {
+    _bgAudio.pause();
+    _bgAudio.currentTime = 0;
+    markPlaying(null);
+  }
+
+  // Play audio on product click (if data-audio present)
+  document.addEventListener('click', function(e) {
+    const a = e.target.closest('a[data-audio]');
+    if (!a) return;
+
+    const src = a.getAttribute('data-audio');
+    if (!src) return;
+
+    if (_bgAudio.src !== src) {
+      _bgAudio.src = src;
+    } else {
+      _bgAudio.currentTime = 0;
+    }
+    _bgAudio.play().catch(() => {});
+    markPlaying(a);
+  });
+
+  // Mute/Unmute
+  const muteBtn = document.getElementById('muteBtn');
+  function refreshMuteLabel() {
+    muteBtn.textContent = _bgAudio.muted ? "Unmute" : "Mute";
+  }
+  refreshMuteLabel();
+  muteBtn.addEventListener('click', () => {
+    _bgAudio.muted = !_bgAudio.muted;
+    refreshMuteLabel();
+  });
+
+  // Stop
+  const stopBtn = document.getElementById('stopBtn');
+  stopBtn.addEventListener('click', stopPlayback);
+  
+  imgModal.addEventListener('hidden.bs.modal', stopPlayback);
+
+  // Optional: stop audio when closing modal
+  // imgModal.addEventListener('hidden.bs.modal', stopPlayback);
+
+  // Optional: stop audio when navigating categories (delegate to left list-group)
+  document.addEventListener('click', function(e) {
+    const catLink = e.target.closest('.list-group a');
+    if (catLink) stopPlayback();
+  });
+</script>
+{% endblock %}
