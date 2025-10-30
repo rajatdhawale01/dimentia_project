@@ -1,29 +1,98 @@
 {% extends "base.html" %}
 {% block title %}Activities · Dementia Care{% endblock %}
 {% block content %}
+
 <div class="d-flex align-items-center justify-content-between mb-3">
   <h1 class="h5 mb-0 text-ink-90">Daily Activities</h1>
-  <a class="btn btn-outline-ink btn-sm" href="{{ url_for('patient_hub') }}">← Back to hub</a>
+  <a class="btn btn-outline-ink btn-sm" href="{{ url_for('patient_home') }}">← Back to hub</a>
 </div>
 
-<section class="card border-0 shadow-sm rounded-4">
-  <div class="card-body p-3 p-md-4">
-    <form class="row g-2 mb-3" method="post" action="{{ url_for('patient_action') }}">
-      <input type="hidden" name="action" value="add_activity">
-      <div class="col-9 col-md-10"><input name="act_title" class="form-control form-control-sm" placeholder="Add an activity…" required></div>
-      <div class="col-3 col-md-2"><button class="btn btn-cta-green btn-sm w-100" type="submit">Add</button></div>
-    </form>
+{# ===== Progress band ===== #}
+{% set total = (data.activities|length) if data.activities else 0 %}
+{% set done = (data.activities|selectattr('done_today')|list|length) if data.activities else 0 %}
+{% set pct = (done*100//total) if total else 0 %}
 
+<section class="card border-0 shadow-sm rounded-4 mb-3">
+  <div class="card-body p-3 p-md-4">
+    <div class="row g-3 align-items-center">
+      <div class="col-md-6 d-flex align-items-center gap-3">
+        <div class="ring" style="--pct: {{ pct }};">
+          <div class="ring-inner">
+            <div class="ring-number">{{ pct }}%</div>
+            <div class="ring-label">Completed</div>
+          </div>
+        </div>
+        <div>
+          <div class="fw-semibold text-ink-90">Small steps add up</div>
+          <div class="small text-ink-60">Mark each activity as you go. You’ve finished <strong>{{ done }}</strong> of <strong>{{ total }}</strong> today.</div>
+          <div class="mt-2">
+            <form class="d-inline" method="post" action="{{ url_for('patient_action') }}">
+              <input type="hidden" name="action" value="reset_activities_today">
+              <button class="btn btn-sm btn-outline-ink" type="submit">Reset today</button>
+            </form>
+            <button class="btn btn-sm btn-ghost" type="button" id="focusBtn">1-minute focus</button>
+            <span class="small text-ink-60 ms-2" id="focusLabel"></span>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 d-flex flex-wrap justify-content-end align-items-center gap-2">
+        <div class="input-group input-group-sm" style="max-width: 340px;">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+          <input id="actSearch" class="form-control" placeholder="Search activities…">
+          <select id="actSort" class="form-select" style="max-width: 130px;">
+            <option value="az">A–Z</option>
+            <option value="za">Z–A</option>
+          </select>
+        </div>
+        <div class="btn-group btn-group-sm" role="group" aria-label="Filters">
+          <button class="btn btn-ink-pill active" data-filter="all">All</button>
+          <button class="btn btn-ink-pill" data-filter="active">Active</button>
+          <button class="btn btn-ink-pill" data-filter="done">Done</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ===== Add form + suggestions ===== #}
+<section class="card border-0 shadow-sm rounded-4 mb-3">
+  <div class="card-body p-3 p-md-4">
+    <form class="row g-2 mb-2" method="post" action="{{ url_for('patient_action') }}">
+      <input type="hidden" name="action" value="add_activity">
+      <div class="col-9 col-md-10">
+        <input id="actInput" name="act_title" class="form-control form-control-sm" placeholder="Add an activity…" required>
+      </div>
+      <div class="col-3 col-md-2">
+        <button class="btn btn-cta-green btn-sm w-100" type="submit">Add</button>
+      </div>
+    </form>
+    <div class="d-flex flex-wrap gap-2">
+      {% for s in [
+        "5-minute breathing","Listen to favorite song","Photo album time",
+        "Short walk","Call a friend","Water a plant","Coloring / doodling",
+        "Stretch shoulders","2-minute sunlight","Tea break ritual"
+      ] %}
+      <button class="btn btn-chip" type="button" data-insert="{{ s }}">+ {{ s }}</button>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{# ===== List ===== #}
+<section class="card border-0 shadow-sm rounded-4">
+  <div class="card-body p-0">
     {% if data.activities %}
-    <ul class="list-group list-group-flush">
+    <ul id="actList" class="list-group list-group-flush">
       {% for a in data.activities %}
-      <li class="list-group-item d-flex justify-content-between align-items-center">
-        <form method="post" action="{{ url_for('patient_action') }}">
+      <li class="list-group-item act-row d-flex justify-content-between align-items-center"
+          data-title="{{ a.title|lower }}"
+          data-state="{{ 'done' if a.done_today else 'active' }}">
+        <form method="post" action="{{ url_for('patient_action') }}" class="flex-grow-1">
           <input type="hidden" name="action" value="toggle_activity">
           <input type="hidden" name="act_id" value="{{ a.id }}">
           <div class="form-check">
             <input class="form-check-input me-2" type="checkbox" onchange="this.form.submit()" {% if a.done_today %}checked{% endif %}>
-            <label class="form-check-label {% if a.done_today %}text-decoration-line-through text-ink-60{% endif %}">
+            <label class="form-check-label act-title {% if a.done_today %}text-decoration-line-through text-ink-60{% endif %}">
               {{ a.title }}
             </label>
           </div>
@@ -31,21 +100,125 @@
         <form method="post" action="{{ url_for('patient_action') }}">
           <input type="hidden" name="action" value="delete_activity">
           <input type="hidden" name="act_id" value="{{ a.id }}">
-          <button class="btn btn-link text-danger p-0" type="submit"><i class="bi bi-x-circle"></i></button>
+          <button class="btn btn-link text-danger p-0" type="submit" title="Remove"><i class="bi bi-x-circle"></i></button>
         </form>
       </li>
       {% endfor %}
     </ul>
     {% else %}
-      <div class="text-ink-60 small">No activities yet — add walking, music, puzzles, etc.</div>
+      <div class="p-3 text-ink-60 small">No activities yet — try adding walking, music, puzzles, or a brief breathing exercise.</div>
     {% endif %}
   </div>
 </section>
 
 <style>
-  :root{ --ink-90:#111827; --ink-60:#475569; --green:#16a34a; --green-lite:#22c55e;}
+  :root{
+    --ink-100:#0b0f1a; --ink-90:#111827; --ink-80:#1f2937; --ink-70:#334155; --ink-60:#475569;
+    --green:#16a34a; --green-2:#22c55e; --yellow:#f59e0b;
+  }
   .text-ink-90{ color:var(--ink-90);} .text-ink-60{ color:var(--ink-60);}
-  .btn-cta-green{ background: linear-gradient(90deg, var(--green) 0%, var(--green-lite) 100%); border:0; color:#fff;}
+  .btn-outline-ink{ color:var(--ink-80); border:1px solid rgba(0,0,0,.15); background:#fff; }
+  .btn-outline-ink:hover{ color:#fff; background:#111827; border-color:#111827; }
+  .btn-cta-green{ background: linear-gradient(90deg, var(--green) 0%, var(--green-2) 100%); border:0; color:#fff;}
   .rounded-4{ border-radius:1rem; }
+
+  .btn-ink-pill{ background:#f3f4f6; color:#111827; border:1px solid rgba(0,0,0,.06); }
+  .btn-ink-pill.active{ background:#111827; color:#fff; }
+  .btn-ghost{ background:#fff8e6; border:1px solid rgba(245,158,11,.5); color:#7c4a03; }
+  .btn-ghost:hover{ background:#fff1cc; }
+
+  /* progress ring */
+  .ring{ --size:84px; --pct:0; width:var(--size); height:var(--size); border-radius:50%;
+         background: conic-gradient(#16a34a calc(var(--pct)*1%), #e5e7eb 0); display:grid; place-items:center; }
+  .ring-inner{ width:calc(var(--size) - 14px); height:calc(var(--size) - 14px); border-radius:50%; background:#fff; display:grid; place-items:center; text-align:center; }
+  .ring-number{ font-weight:700; line-height:1; }
+  .ring-label{ font-size:.75rem; color:var(--ink-60); }
+
+  /* list */
+  .act-row{ transition: background .12s ease; }
+  .act-row:hover{ background:#fafafa; }
+  .act-title{ transition: color .12s ease, text-decoration-color .12s ease; }
+
+  /* chips */
+  .btn-chip{ border:1px dashed rgba(0,0,0,.18); background:#fff; color:#111827; padding:.25rem .5rem; border-radius:999px; }
+  .btn-chip:hover{ background:#111827; color:#fff; }
 </style>
+
+<script>
+  // --- Suggestion chips insert
+  const input = document.getElementById('actInput');
+  document.querySelectorAll('.btn-chip').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      input.value = btn.getAttribute('data-insert');
+      input.focus();
+    });
+  });
+
+  // --- Filters / Search / Sort (client-side)
+  const filterBtns = document.querySelectorAll('[data-filter]');
+  const list = document.getElementById('actList');
+  const rows = list ? Array.from(list.querySelectorAll('.act-row')) : [];
+  const search = document.getElementById('actSearch');
+  const sortSel = document.getElementById('actSort');
+
+  let currentFilter = 'all';
+
+  function applyFilters() {
+    const q = (search?.value || '').trim().toLowerCase();
+    rows.forEach(li=>{
+      const title = li.getAttribute('data-title') || '';
+      const state = li.getAttribute('data-state') || 'active';
+      const passFilter = (currentFilter === 'all') ||
+                         (currentFilter === 'active' && state === 'active') ||
+                         (currentFilter === 'done' && state === 'done');
+      const passSearch = !q || title.includes(q);
+      li.style.display = (passFilter && passSearch) ? '' : 'none';
+    });
+  }
+
+  function applySort() {
+    if (!list) return;
+    const visible = rows.filter(li => li.style.display !== 'none');
+    visible.sort((a,b)=>{
+      const ta = a.getAttribute('data-title') || '';
+      const tb = b.getAttribute('data-title') || '';
+      return (sortSel?.value === 'za') ? tb.localeCompare(ta) : ta.localeCompare(tb);
+    });
+    visible.forEach(li => list.appendChild(li));
+  }
+
+  filterBtns.forEach(b=>{
+    b.addEventListener('click', ()=>{
+      filterBtns.forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      currentFilter = b.getAttribute('data-filter');
+      applyFilters(); applySort();
+    });
+  });
+  search?.addEventListener('input', ()=>{ applyFilters(); applySort(); });
+  sortSel?.addEventListener('change', ()=>{ applyFilters(); applySort(); });
+  document.addEventListener('DOMContentLoaded', ()=>{ applyFilters(); applySort(); });
+
+  // --- 1-minute focus timer (no backend)
+  const focusBtn = document.getElementById('focusBtn');
+  const focusLabel = document.getElementById('focusLabel');
+  let timer = null, remaining = 60;
+
+  function tick(){
+    remaining -= 1;
+    focusLabel.textContent = `: ${remaining}s`;
+    if (remaining <= 0) {
+      clearInterval(timer); timer = null;
+      focusLabel.textContent = " — well done!";
+      setTimeout(()=> focusLabel.textContent = "", 4000);
+    }
+  }
+  focusBtn?.addEventListener('click', ()=>{
+    if (timer) { clearInterval(timer); timer = null; }
+    remaining = 60;
+    focusLabel.textContent = `: ${remaining}s`;
+    timer = setInterval(tick, 1000);
+  });
+</script>
+
 {% endblock %}

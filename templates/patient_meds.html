@@ -7,95 +7,366 @@
   <a class="btn btn-outline-ink btn-sm" href="{{ url_for('patient_hub') }}">← Back to hub</a>
 </div>
 
-<section class="card border-0 shadow-sm rounded-4">
+<!-- ========= TODAY SUMMARY ========= -->
+{% set total = data.meds|length %}
+{% set taken_list = data.meds | selectattr('taken_today') | list %}
+{% set taken = taken_list|length %}
+{% set pending = total - taken %}
+{% set adherence = (100 * taken / total) if total else 0 %}
+
+<section class="card border-0 shadow-sm rounded-4 mb-3">
   <div class="card-body p-3 p-md-4">
-
-    <!-- Add medicine -->
-    <form class="row g-2 mb-3" method="post" action="{{ url_for('patient_action') }}">
-      <input type="hidden" name="action" value="add_med">
-      <div class="col-12 col-md-5">
-        <input name="med_name" class="form-control form-control-sm" placeholder="Medicine name (e.g., Donepezil)" required>
+    <div class="row g-3 align-items-center">
+      <div class="col-md-4 d-flex align-items-center gap-3">
+        <div class="ring" style="--pct: {{ adherence|round(1) }};">
+          <div class="ring-inner">
+            <div class="ring-number">{{ adherence|round(0) }}%</div>
+            <div class="ring-label">Today</div>
+          </div>
+        </div>
+        <div>
+          <div class="fw-semibold text-ink-90">Today’s Adherence</div>
+          <div class="small text-ink-60">Taken {{ taken }}/{{ total }} doses</div>
+          {% set next_list = data.meds
+             | selectattr('taken_today','equalto',False)
+             | sort(attribute='time') | list %}
+          {% if next_list %}
+            <div class="small mt-1"><span class="badge bg-light text-ink-80">
+              Next: {{ next_list[0].name }} @ {{ next_list[0].time }}</span>
+            </div>
+          {% else %}
+            <div class="small mt-1 text-ink-60">All doses completed for today 🎉</div>
+          {% endif %}
+        </div>
       </div>
-      <div class="col-7 col-md-3">
-        <input name="med_time" class="form-control form-control-sm" placeholder="HH:MM (24h)" pattern="^\\d{2}:\\d{2}$" required>
+
+      <div class="col-md-8">
+        <div class="row text-center">
+          <div class="col-4">
+            <div class="stat-pill bg-success-subtle">
+              <div class="stat-num">{{ taken }}</div>
+              <div class="stat-label">Taken</div>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="stat-pill bg-warning-subtle">
+              <div class="stat-num">{{ pending }}</div>
+              <div class="stat-label">Pending</div>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="stat-pill bg-light">
+              <div class="stat-num">{{ total }}</div>
+              <div class="stat-label">Total</div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="col-5 col-md-2">
-        <button class="btn btn-cta-green btn-sm w-100" type="submit">Add</button>
-      </div>
-    </form>
-
-    <!-- List -->
-    {% if data.meds %}
-    <div class="table-responsive">
-      <table class="table align-middle mb-0">
-        <thead>
-          <tr class="text-ink-70 small">
-            <th style="min-width:160px;">Name</th>
-            <th style="width:120px;">Time</th>
-            <th style="width:140px;">Status</th>
-            <th class="text-end" style="width:200px;">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-        {% for m in data.meds %}
-          <tr>
-            <td class="fw-semibold text-ink-90">{{ m.name }}</td>
-            <td><span class="badge bg-light text-ink-80">{{ m.time }}</span></td>
-            <td>
-              {% if m.taken_today %}
-                <span class="badge bg-success">Taken</span>
-              {% else %}
-                <span class="badge bg-warning text-dark">Pending</span>
-              {% endif %}
-            </td>
-            <td class="text-end">
-              <form class="d-inline" method="post" action="{{ url_for('patient_action') }}">
-                <input type="hidden" name="action" value="toggle_med">
-                <input type="hidden" name="med_id" value="{{ m.id }}">
-                <button class="btn btn-sm btn-outline-ink" type="submit">
-                  {% if m.taken_today %}Mark pending{% else %}Mark taken{% endif %}
-                </button>
-              </form>
-              <form class="d-inline" method="post" action="{{ url_for('patient_action') }}">
-                <input type="hidden" name="action" value="delete_med">
-                <input type="hidden" name="med_id" value="{{ m.id }}">
-                <button class="btn btn-sm btn-link text-danger" type="submit" title="Delete"><i class="bi bi-trash"></i></button>
-              </form>
-            </td>
-          </tr>
-        {% endfor %}
-        </tbody>
-      </table>
-    </div>
-    {% else %}
-      <div class="text-ink-60 small">No meds yet — add name & time above.</div>
-    {% endif %}
-
-    <!-- Today quick summary -->
-    <hr class="my-3">
-    {% set taken = (data.meds | selectattr('taken_today') | list | length) %}
-    {% set total = data.meds | length %}
-    <div class="d-flex flex-wrap gap-2 align-items-center small">
-      <span class="text-ink-70">Today’s progress:</span>
-      <span class="badge bg-success-subtle text-success-emph">{{ taken }}/{{ total }} taken</span>
-      {% if total > 0 and taken < total %}
-        <span class="text-ink-60">Don’t forget to mark after taking 🌿</span>
-      {% endif %}
-    </div>
-
+    </div>    
   </div>
 </section>
 
+<div class="row g-3">
+  <!-- ========= MAIN: LIST + TABS ========= -->
+  <div class="col-lg-8">
+    <section class="card border-0 shadow-sm rounded-4 h-100">
+      <div class="card-body p-3 p-md-4">
+        <!-- Tabs -->
+        <ul class="nav nav-pills mb-3" id="medTabs">
+          <li class="nav-item">
+            <button class="nav-link active" data-target="#tabPending" type="button">Pending ({{ pending }})</button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" data-target="#tabAll" type="button">All ({{ total }})</button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" data-target="#tabTaken" type="button">Taken ({{ taken }})</button>
+          </li>
+        </ul>
+
+        <!-- Pending -->
+        <div id="tabPending" class="tab-pane active">
+          {% set pending_items = data.meds | selectattr('taken_today','equalto',False) | sort(attribute='time') | list %}
+          {% if pending_items %}
+          <div class="table-responsive">
+            <table class="table align-middle mb-0">
+              <thead>
+                <tr class="text-ink-70 small">
+                  <th>Name</th><th style="width:120px;">Time</th><th style="width:140px;">Status</th>
+                  <th class="text-end" style="width:200px;">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for m in pending_items %}
+                <tr>
+                  <td class="fw-semibold text-ink-90">{{ m.name }}</td>
+                  <td><span class="badge bg-light text-ink-80">{{ m.time }}</span></td>
+                  <td><span class="badge bg-warning text-dark">Pending</span></td>
+                  <td class="text-end">
+                    <form class="d-inline" method="post" action="{{ url_for('patient_action') }}">
+                      <input type="hidden" name="action" value="toggle_med">
+                      <input type="hidden" name="med_id" value="{{ m.id }}">
+                      <button class="btn btn-sm btn-cta-green" type="submit">Mark taken</button>
+                    </form>
+                    <form class="d-inline" method="post" action="{{ url_for('patient_action') }}">
+                      <input type="hidden" name="action" value="delete_med">
+                      <input type="hidden" name="med_id" value="{{ m.id }}">
+                      <button class="btn btn-sm btn-link text-danger" type="submit" title="Delete">
+                        <i class="bi bi-trash"></i></button>
+                    </form>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+            <div class="text-ink-60 small">Nothing pending right now.</div>
+          {% endif %}
+        </div>
+
+        <!-- All -->
+        <div id="tabAll" class="tab-pane">
+          {% if data.meds %}
+          <div class="table-responsive">
+            <table class="table align-middle mb-0">
+              <thead>
+                <tr class="text-ink-70 small">
+                  <th>Name</th><th style="width:120px;">Time</th><th style="width:140px;">Status</th>
+                  <th class="text-end" style="width:200px;">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for m in data.meds|sort(attribute='time') %}
+                <tr>
+                  <td class="fw-semibold text-ink-90">{{ m.name }}</td>
+                  <td><span class="badge bg-light text-ink-80">{{ m.time }}</span></td>
+                  <td>
+                    {% if m.taken_today %}
+                      <span class="badge bg-success">Taken</span>
+                    {% else %}
+                      <span class="badge bg-warning text-dark">Pending</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-end">
+                    <form class="d-inline" method="post" action="{{ url_for('patient_action') }}">
+                      <input type="hidden" name="action" value="toggle_med">
+                      <input type="hidden" name="med_id" value="{{ m.id }}">
+                      <button class="btn btn-sm btn-outline-ink" type="submit">
+                        {% if m.taken_today %}Mark pending{% else %}Mark taken{% endif %}
+                      </button>
+                    </form>
+                    <form class="d-inline" method="post" action="{{ url_for('patient_action') }}">
+                      <input type="hidden" name="action" value="delete_med">
+                      <input type="hidden" name="med_id" value="{{ m.id }}">
+                      <button class="btn btn-sm btn-link text-danger" type="submit" title="Delete">
+                        <i class="bi bi-trash"></i></button>
+                    </form>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+            <div class="text-ink-60 small">No medicines added yet.</div>
+          {% endif %}
+        </div>
+
+        <!-- Taken -->
+        <div id="tabTaken" class="tab-pane">
+          {% set taken_items = data.meds | selectattr('taken_today') | sort(attribute='time') | list %}
+          {% if taken_items %}
+          <div class="table-responsive">
+            <table class="table align-middle mb-0">
+              <thead>
+                <tr class="text-ink-70 small">
+                  <th>Name</th><th style="width:120px;">Time</th><th style="width:140px;">Status</th>
+                  <th class="text-end" style="width:200px;">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for m in taken_items %}
+                <tr>
+                  <td class="fw-semibold text-ink-90">{{ m.name }}</td>
+                  <td><span class="badge bg-light text-ink-80">{{ m.time }}</span></td>
+                  <td><span class="badge bg-success">Taken</span></td>
+                  <td class="text-end">
+                    <form class="d-inline" method="post" action="{{ url_for('patient_action') }}">
+                      <input type="hidden" name="action" value="toggle_med">
+                      <input type="hidden" name="med_id" value="{{ m.id }}">
+                      <button class="btn btn-sm btn-outline-ink" type="submit">Mark pending</button>
+                    </form>
+                    <form class="d-inline" method="post" action="{{ url_for('patient_action') }}">
+                      <input type="hidden" name="action" value="delete_med">
+                      <input type="hidden" name="med_id" value="{{ m.id }}">
+                      <button class="btn btn-sm btn-link text-danger" type="submit" title="Delete">
+                        <i class="bi bi-trash"></i></button>
+                    </form>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+            <div class="text-ink-60 small">No doses marked as taken yet.</div>
+          {% endif %}
+        </div>
+
+      </div>
+    </section>
+  </div>
+
+  <!-- ========= SIDEBAR ========= -->
+  <div class="col-lg-4">
+    <section class="card border-0 shadow-sm rounded-4 mb-3">
+      <div class="card-body p-3 p-md-4">
+        <div class="fw-semibold text-ink-90 mb-2">Add Medicine</div>
+        <form class="row g-2 mb-2" method="post" action="{{ url_for('patient_action') }}">
+          <input type="hidden" name="action" value="add_med">
+          <div class="col-12">
+            <input name="med_name" class="form-control form-control-sm" placeholder="Name (e.g., Donepezil)" required>
+          </div>
+          <div class="col-7">
+            <input name="med_time" class="form-control form-control-sm" placeholder="HH:MM (24h)" pattern="^\\d{2}:\\d{2}$" required>
+          </div>
+          <div class="col-5">
+            <button class="btn btn-cta-green btn-sm w-100" type="submit">Add</button>
+          </div>
+        </form>
+
+        <div class="small text-ink-70 mb-2">Quick add</div>
+        <div class="d-flex flex-wrap gap-2">
+          <!-- quick presets -->
+          {% for n,t in [
+             ('Donepezil','08:00'),
+             ('Memantine','21:00'),
+             ('Vitamin B12','09:00'),
+             ('Omega-3','13:00')
+           ] %}
+          <form method="post" action="{{ url_for('patient_action') }}">
+            <input type="hidden" name="action" value="add_med">
+            <input type="hidden" name="med_name" value="{{ n }}">
+            <input type="hidden" name="med_time" value="{{ t }}">
+            <button class="btn btn-outline-ink btn-sm" type="submit">{{ n }} @ {{ t }}</button>
+          </form>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+
+    <section class="card border-0 shadow-sm rounded-4 mb-3">
+      <div class="card-body p-3 p-md-4">
+        <div class="fw-semibold text-ink-90 mb-2">Safety tips</div>
+        <ul class="small text-ink-80 mb-0">
+          <li>Use the same timing every day (e.g., after breakfast).</li>
+          <li>Keep medicines in original labeled bottles.</li>
+          <li>If you miss a dose, follow your doctor’s guidance—don’t double up unless told.</li>
+          <li>Log side effects in <em>Mood & Notes</em> so your care team can review.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="card border-0 shadow-sm rounded-4">
+      <div class="card-body p-3 p-md-4">
+        <div class="fw-semibold text-ink-90 mb-2">FAQ</div>
+        <div class="accordion" id="medFaq">
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="q1">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#a1">
+                Can I change times later?
+              </button>
+            </h2>
+            <div id="a1" class="accordion-collapse collapse" data-bs-parent="#medFaq">
+              <div class="accordion-body small text-ink-80">
+                Yes—delete and re-add with the new time. (Edit UI coming soon.)
+              </div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="q2">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#a2">
+                Does this send phone reminders?
+              </button>
+            </h2>
+            <div id="a2" class="accordion-collapse collapse" data-bs-parent="#medFaq">
+              <div class="accordion-body small text-ink-80">
+                In this demo, reminders are on-screen. SMS/Push can be added when we connect a notifier.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<!-- ===== styles & tiny JS ===== -->
 <style>
-  :root{ --ink-90:#111827; --ink-80:#1f2937; --ink-70:#334155; --ink-60:#475569; --green:#16a34a; --green-lite:#22c55e; }
-  .text-ink-90{ color:var(--ink-90); } .text-ink-80{ color:var(--ink-80); } .text-ink-70{ color:var(--ink-70); } .text-ink-60{ color:var(--ink-60); }
-  .btn-cta-green{ background: linear-gradient(90deg, var(--green) 0%, var(--green-lite) 100%); border:0; color:#fff; box-shadow:0 8px 18px rgba(22,163,74,.2); }
-  .btn-cta-green:hover{ filter:brightness(.96); color:#fff; }
+  :root{
+    --ink-90:#111827; --ink-80:#1f2937; --ink-70:#334155; --ink-60:#475569;
+    --green:#16a34a; --green-2:#22c55e; --yellow:#f59e0b;
+  }
+  .text-ink-90{ color:var(--ink-90); }
+  .text-ink-80{ color:var(--ink-80); }
+  .text-ink-70{ color:var(--ink-70); }
+  .text-ink-60{ color:var(--ink-60); }
+
   .btn-outline-ink{ color:var(--ink-80); border:1px solid rgba(0,0,0,.15); background:#fff; }
   .btn-outline-ink:hover{ color:#fff; background:#111827; border-color:#111827; }
-  .bg-success-subtle{ background: rgba(16,185,129,.14)!important; }
-  .text-success-emph{ color:#065f46!important; }
+  .btn-cta-green{ background: linear-gradient(90deg, var(--green) 0%, var(--green-2) 100%); border:0; color:#fff; }
+  .btn-cta-green:hover{ filter:brightness(.96); color:#fff; }
+
   .rounded-4{ border-radius:1rem; }
+
+  .progress{ height:8px; background:#eef2f7; border-radius:8px; overflow:hidden; }
+  .progress-bar{ height:100%; }
+  .bg-success-subtle{ background: rgba(16,185,129,.14)!important; }
+  .bg-warning-subtle{ background: rgba(245,158,11,.20)!important; }
+
+  /* Adherence ring */
+  .ring{
+    --size:84px; --pct:0;
+    width: var(--size); height: var(--size); border-radius: 50%;
+    background: conic-gradient(var(--green) calc(var(--pct) * 1%), #e5e7eb 0);
+    display:grid; place-items:center;
+  }
+  .ring-inner{
+    width: calc(var(--size) - 14px); height: calc(var(--size) - 14px);
+    border-radius:50%; background:#fff; display:grid; place-items:center; text-align:center;
+  }
+  .ring-number{ font-weight:700; line-height:1; }
+  .ring-label{ font-size:.75rem; color:var(--ink-60); }
+
+  .stat-pill{
+    border-radius:14px; padding:.6rem .8rem; border:1px solid rgba(0,0,0,.06);
+  }
+  .stat-num{ font-size:1.35rem; font-weight:700; line-height:1; }
+  .stat-label{ font-size:.8rem; color:var(--ink-60); }
+
+  /* Tabs */
+  .nav-pills .nav-link { background:#f3f4f6; color:#111827; margin-right:.4rem; }
+  .nav-pills .nav-link.active { background:#111827; color:#fff; }
+  .tab-pane{ display:none; }
+  .tab-pane.active{ display:block; }
 </style>
+
+<script>
+  // Simple tabs
+  const tabs = document.querySelectorAll('#medTabs .nav-link');
+  const panes = ['tabPending','tabAll','tabTaken'].map(id=>document.getElementById(id));
+  tabs.forEach_btn = (fn)=>tabs.forEach(fn);
+  tabs.forEach((btn)=>{
+    btn.addEventListener('click', ()=>{
+      tabs.forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      const tgt = btn.getAttribute('data-target');
+      panes.forEach(p=>p.classList.remove('active'));
+      document.querySelector(tgt).classList.add('active');
+    });
+  });
+</script>
 
 {% endblock %}
