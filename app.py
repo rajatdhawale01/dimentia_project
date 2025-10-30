@@ -23,7 +23,7 @@ RECAPTCHA_SECRET_KEY = os.getenv("RECAPTCHA_SECRET_KEY", "6LfwdfwrAAAAAGOwW00J_K
 
 # Demo users (username -> {password, role})  roles: admin | patient | caretaker
 DEMO_USERS = {
-    "rajat":  {"password": "pass123",  "role": "patient"},
+    "student":  {"password": "pass123",  "role": "patient"},
     "admin":  {"password": "admin123", "role": "admin"},
     "guest":  {"password": "guest",    "role": "caretaker"},
 }
@@ -244,6 +244,17 @@ def patient_redirect_to_hub():
     """Keep /patient for compatibility; send to hub."""
     return redirect(url_for("patient_hub"))
 
+@app.route("/patient", endpoint="patient_home")
+@role_required("patient")
+def patient_home():
+    username = session.get("user")
+    _ensure_patient(username)
+    data = PATIENT_DB[username]
+    for a in data["appts"]:
+        a["dt_pretty"] = _dt_pretty(a.get("dt", ""))
+    return render_template("patient.html", user=username, role=session.get("role"), data=data)
+
+
 @app.route("/patient/hub", methods=["GET"])
 @role_required("patient")
 def patient_hub():
@@ -277,14 +288,16 @@ def patient_mood():
     data = PATIENT_DB[username]
     return render_template("patient_mood.html", user=username, role=session.get("role"), data=data)
 
-@app.route("/patient/memory", methods=["GET"])
+@app.route("/patient/memory")
 @role_required("patient")
 def patient_memory():
     username = session.get("user")
     _ensure_patient(username)
     data = PATIENT_DB[username]
-    view = {"reminders": [{**r, "dt_pretty": _dt_pretty(r["dt"])} for r in data["reminders"]]}
-    return render_template("patient_memory.html", user=username, role=session.get("role"), data=data, view=view)
+    for r in data.get("reminders", []):
+        r["dt_pretty"] = _dt_pretty(r.get("dt", ""))
+    return render_template("patient_memory.html",
+                           user=username, role=session.get("role"), data=data)
 
 @app.route("/patient/activities", methods=["GET"])
 @role_required("patient")
@@ -574,3 +587,4 @@ def caretaker_home():
 # ----------------- main -----------------
 if __name__ == "__main__":
     app.run(debug=True)
+
