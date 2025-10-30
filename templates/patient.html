@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+{% block title %}Patient · Dementia Care{% endblock %}
+{% block content %}
+
+<section class="rounded-4 shadow-sm p-3 p-md-4 mb-4 position-relative overflow-hidden patient-hero">
+  <div class="d-flex align-items-center justify-content-between">
+    <div>
+      <h1 class="h4 mb-1 text-ink-90">Welcome, {{ user|capitalize }}</h1>
+      <p class="text-ink-60 mb-0">Your daily care hub — routines, medications, notes & more.</p>
+    </div>
+    <div class="d-none d-md-flex gap-2">
+      <a class="btn btn-outline-ink btn-sm" href="{{ url_for('landing') }}">← Landing</a>
+      <a class="btn btn-cta-green btn-sm" href="{{ url_for('logout') }}">Logout</a>
+    </div>
+  </div>
+</section>
+
+<div class="row g-3">
+  <!-- Left column -->
+  <div class="col-lg-7">
+    <!-- Routines -->
+    <div class="card h-100 border-0 shadow-sm rounded-4 mb-3">
+      <div class="card-body p-3 p-md-4">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <h2 class="h6 mb-0 text-ink-90">Today’s Routine</h2>
+          <form class="d-flex gap-2" method="post" action="{{ url_for('patient_action') }}">
+            <input type="hidden" name="action" value="add_task">
+            <input type="text" name="task_title" class="form-control form-control-sm" placeholder="Add a task…" required>
+            <button class="btn btn-cta-green btn-sm" type="submit">Add</button>
+          </form>
+        </div>
+
+        {% if data.tasks %}
+        <ul class="list-group list-group-flush">
+          {% for t in data.tasks %}
+          <li class="list-group-item d-flex align-items-center justify-content-between">
+            <div class="form-check">
+              <form method="post" action="{{ url_for('patient_action') }}">
+                <input type="hidden" name="action" value="toggle_task">
+                <input type="hidden" name="task_id" value="{{ t.id }}">
+                <input class="form-check-input me-2" type="checkbox" onchange="this.form.submit()" {% if t.done %}checked{% endif %}>
+                <label class="form-check-label {% if t.done %}text-decoration-line-through text-ink-50{% endif %}">
+                  {{ t.title }}
+                </label>
+              </form>
+            </div>
+            <form method="post" action="{{ url_for('patient_action') }}">
+              <input type="hidden" name="action" value="delete_task">
+              <input type="hidden" name="task_id" value="{{ t.id }}">
+              <button class="btn btn-link text-danger small p-0" type="submit"><i class="bi bi-x-circle"></i></button>
+            </form>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <div class="text-ink-60 small">No tasks yet — add your morning routine, walking time, etc.</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Medications -->
+    <div class="card h-100 border-0 shadow-sm rounded-4 mb-3">
+      <div class="card-body p-3 p-md-4">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <h2 class="h6 mb-0 text-ink-90">Medications (today)</h2>
+          <form class="row g-2" method="post" action="{{ url_for('patient_action') }}">
+            <input type="hidden" name="action" value="add_med">
+            <div class="col-5 col-sm-4">
+              <input name="med_name" class="form-control form-control-sm" placeholder="Name" required>
+            </div>
+            <div class="col-4 col-sm-3">
+              <input name="med_time" class="form-control form-control-sm" placeholder="HH:MM" pattern="^\\d{2}:\\d{2}$" required>
+            </div>
+            <div class="col-3 col-sm-3">
+              <button class="btn btn-cta-green btn-sm w-100" type="submit">Add</button>
+            </div>
+          </form>
+        </div>
+
+        {% if data.meds %}
+        <div class="table-responsive">
+          <table class="table align-middle mb-0">
+            <thead>
+              <tr class="text-ink-70 small">
+                <th>Name</th><th>Time</th><th>Status</th><th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+            {% for m in data.meds %}
+              <tr>
+                <td>{{ m.name }}</td>
+                <td><span class="badge bg-light text-ink-80">{{ m.time }}</span></td>
+                <td>
+                  {% if m.taken_today %}
+                    <span class="badge bg-success">Taken</span>
+                  {% else %}
+                    <span class="badge bg-warning text-dark">Pending</span>
+                  {% endif %}
+                </td>
+                <td class="text-end">
+                  <form class="d-inline" method="post" action="{{ url_for('patient_action') }}">
+                    <input type="hidden" name="action" value="toggle_med">
+                    <input type="hidden" name="med_id" value="{{ m.id }}">
+                    <button class="btn btn-sm btn-outline-ink" type="submit">
+                      {% if m.taken_today %}Mark pending{% else %}Mark taken{% endif %}
+                    </button>
+                  </form>
+                  <form class="d-inline" method="post" action="{{ url_for('patient_action') }}">
+                    <input type="hidden" name="action" value="delete_med">
+                    <input type="hidden" name="med_id" value="{{ m.id }}">
+                    <button class="btn btn-sm btn-link text-danger" type="submit"><i class="bi bi-trash"></i></button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="text-ink-60 small">No meds added yet — add name & time above.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Right column -->
+  <div class="col-lg-5">
+    <!-- Mood & Notes -->
+    <div class="card border-0 shadow-sm rounded-4 mb-3">
+      <div class="card-body p-3 p-md-4">
+        <h2 class="h6 mb-2 text-ink-90">Mood & Quick Notes</h2>
+        <form class="row g-2 mb-3" method="post" action="{{ url_for('patient_action') }}">
+          <input type="hidden" name="action" value="set_mood_and_note">
+          <div class="col-5">
+            <select name="mood" class="form-select form-select-sm">
+              {% set moods = ['🙂 Calm','😐 Okay','🙁 Low','😴 Tired','😀 Cheerful'] %}
+              {% for m in moods %}
+                <option value="{{ m }}" {% if data.mood == m %}selected{% endif %}>{{ m }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-7">
+            <input name="note" class="form-control form-control-sm" placeholder="E.g. Walked 15 mins, ate well">
+          </div>
+          <div class="col-12">
+            <button class="btn btn-cta-green btn-sm w-100" type="submit">Save</button>
+          </div>
+        </form>
+
+        {% if data.notes %}
+        <ul class="list-group list-group-flush small">
+          {% for n in data.notes %}
+          <li class="list-group-item d-flex justify-content-between align-items-start">
+            <div class="me-3">
+              <div class="fw-semibold">{{ n.mood }}</div>
+              <div class="text-ink-80">{{ n.text }}</div>
+              <div class="text-ink-60">{{ n.ts }}</div>
+            </div>
+            <form method="post" action="{{ url_for('patient_action') }}">
+              <input type="hidden" name="action" value="delete_note">
+              <input type="hidden" name="note_id" value="{{ n.id }}">
+              <button class="btn btn-link text-danger p-0" type="submit"><i class="bi bi-x-circle"></i></button>
+            </form>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <div class="text-ink-60 small">No notes yet — log mood + a short note.</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Appointments -->
+    <div class="card border-0 shadow-sm rounded-4 mb-3">
+      <div class="card-body p-3 p-md-4">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <h2 class="h6 mb-0 text-ink-90">Appointments</h2>
+          <form class="row g-2" method="post" action="{{ url_for('patient_action') }}">
+            <input type="hidden" name="action" value="add_appt">
+            <div class="col-6">
+              <input name="appt_title" class="form-control form-control-sm" placeholder="Doctor visit" required>
+            </div>
+            <div class="col-6">
+              <input name="appt_dt" type="datetime-local" class="form-control form-control-sm" required>
+            </div>
+            <div class="col-12">
+              <button class="btn btn-cta-green btn-sm w-100" type="submit">Add</button>
+            </div>
+          </form>
+        </div>
+
+        {% if data.appts %}
+        <ul class="list-group list-group-flush">
+          {% for a in data.appts %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+              <div class="fw-semibold">{{ a.title }}</div>
+              <small class="text-ink-60">{{ a.dt_pretty }}</small>
+            </div>
+            <form method="post" action="{{ url_for('patient_action') }}">
+              <input type="hidden" name="action" value="delete_appt">
+              <input type="hidden" name="appt_id" value="{{ a.id }}">
+              <button class="btn btn-link text-danger p-0" type="submit"><i class="bi bi-trash"></i></button>
+            </form>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <div class="text-ink-60 small">No appointments scheduled. Add one above.</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Upload Reports -->
+    <div class="card border-0 shadow-sm rounded-4">
+      <div class="card-body p-3 p-md-4">
+        <h2 class="h6 mb-2 text-ink-90">Reports & Files</h2>
+        <form class="row g-2 mb-2" method="post" action="{{ url_for('patient_upload') }}" enctype="multipart/form-data">
+          <div class="col-8">
+            <input name="file" type="file" class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png,.webp" required>
+          </div>
+          <div class="col-4">
+            <button class="btn btn-cta-green btn-sm w-100" type="submit">Upload</button>
+          </div>
+        </form>
+
+        {% if data.files %}
+        <ul class="list-group list-group-flush small">
+          {% for f in data.files %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <a class="link-ink" href="{{ url_for('static', filename='uploads/' ~ f.name) }}" target="_blank">{{ f.name }}</a>
+            <form method="post" action="{{ url_for('patient_action') }}">
+              <input type="hidden" name="action" value="delete_file">
+              <input type="hidden" name="file_name" value="{{ f.name }}">
+              <button class="btn btn-link text-danger p-0" type="submit"><i class="bi bi-trash"></i></button>
+            </form>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <div class="text-ink-60 small">No files uploaded yet — PDF, PNG or JPG supported.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .patient-hero{
+    background:
+      radial-gradient(900px 360px at -8% -25%, rgba(245,158,11,.10) 0%, rgba(245,158,11,0) 65%),
+      radial-gradient(820px 320px at 112% -25%, rgba(22,163,74,.12) 0%, rgba(22,163,74,0) 68%),
+      linear-gradient(180deg, #ffffff 0%, #f7f9fb 100%);
+  }
+  :root{ --ink-90:#111827; --ink-80:#1f2937; --ink-70:#334155; --ink-60:#475569; --green:#16a34a; --green-lite:#22c55e; }
+  .text-ink-90{ color:var(--ink-90); } .text-ink-80{ color:var(--ink-80); } .text-ink-70{ color:var(--ink-70); } .text-ink-60{ color:var(--ink-60); }
+  .btn-cta-green{ background: linear-gradient(90deg, var(--green) 0%, var(--green-lite) 100%); border:0; color:#fff; box-shadow:0 8px 18px rgba(22,163,74,.2); }
+  .btn-cta-green:hover{ filter:brightness(.96); color:#fff; }
+  .btn-outline-ink{ color:var(--ink-80); border:1px solid rgba(0,0,0,.15); background:#fff; }
+  .btn-outline-ink:hover{ color:#fff; background:var(--ink-90); border-color:var(--ink-90); }
+  .rounded-4{ border-radius:1rem; }
+</style>
+
+{% endblock %}

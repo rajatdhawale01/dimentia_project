@@ -1,41 +1,77 @@
 {% extends "base.html" %}
-{% block title %}Home · Flask Sections App{% endblock %}
+{% block title %}Home{% endblock %}
 {% block content %}
-<div class="text-center mb-4">
-  <h1 class="display-6">Welcome, {{ user }} 👋</h1>
-  <p class="text-muted">Choose a section below.</p>
+{% set role_lower = (role or '')|lower %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <div>
+    <h1 class="h4 mb-1">Welcome, {{ user }}</h1>
+    <div class="text-muted">Signed in as <span class="badge bg-secondary">{{ role|title }}</span></div>
+  </div>
+  <a href="{{ url_for('logout') }}" class="btn btn-outline-dark btn-sm">Logout</a>
 </div>
 
 <div class="row g-3">
-  <div class="col-md-4">
-    <a class="section-card text-decoration-none" href="{{ url_for('customer') }}">
-      <div class="card h-100 shadow-sm hover-lift">
-        <div class="card-body">
-          <h2 class="h5 mb-2">Customer</h2>
-          <p class="text-muted mb-0">Customer overview, orders, support tickets.</p>
-        </div>
+  {% if role_lower == 'patient' %}
+  <div class="col-lg-4">
+    <div class="p-4 bg-white rounded-4 shadow-sm h-100">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <h2 class="h6 mb-0">Patient – Quick Actions</h2>
+        <span class="badge bg-success">Patient</span>
       </div>
-    </a>
+      <div class="d-grid gap-2">
+        <a class="btn btn-outline-primary" href="{{ url_for('patient_home') }}">Open Patient Portal</a>
+        <a class="btn btn-outline-secondary" href="#">My Appointments</a>
+        <a class="btn btn-outline-secondary" href="#">Prescriptions</a>
+        <a class="btn btn-outline-secondary" href="#">Daily Tasks</a>
+      </div>
+    </div>
   </div>
-  <div class="col-md-4">
-    <a class="section-card text-decoration-none" href="{{ url_for('client') }}">
-      <div class="card h-100 shadow-sm hover-lift">
-        <div class="card-body">
-          <h2 class="h5 mb-2">Client</h2>
-          <p class="text-muted mb-0">Client projects, invoices, timelines.</p>
-        </div>
+  {% endif %}
+
+  {% if role_lower == 'caretaker' %}
+  <div class="col-lg-4">
+    <div class="p-4 bg-white rounded-4 shadow-sm h-100">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <h2 class="h6 mb-0">Caretaker – Quick Actions</h2>
+        <span class="badge bg-info">Caretaker</span>
       </div>
-    </a>
+      <div class="d-grid gap-2">
+        <a class="btn btn-outline-primary" href="{{ url_for('caretaker_home') }}">Open Caretaker Area</a>
+        <a class="btn btn-outline-secondary" href="#">Assigned Patients</a>
+        <a class="btn btn-outline-secondary" href="#">Care Schedule</a>
+        <a class="btn btn-outline-secondary" href="#">Notes & Tasks</a>
+      </div>
+    </div>
   </div>
-  <div class="col-md-4">
-    <a class="section-card text-decoration-none" href="{{ url_for('admin') }}">
-      <div class="card h-100 shadow-sm hover-lift">
-        <div class="card-body">
-          <h2 class="h5 mb-2">Admin</h2>
-          <p class="text-muted mb-0">Admin tools, users, system settings.</p>
-        </div>
+  {% endif %}
+
+  {% if role_lower == 'admin' %}
+  <div class="col-lg-4">
+    <div class="p-4 bg-white rounded-4 shadow-sm h-100">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <h2 class="h6 mb-0">Admin – Quick Actions</h2>
+        <span class="badge bg-danger">Admin</span>
       </div>
-    </a>
+      <div class="d-grid gap-2">
+        <a class="btn btn-outline-primary" href="{{ url_for('admin_home') }}">Open Admin Dashboard</a>
+        <a class="btn btn-outline-secondary" href="#">Manage Users</a>
+        <a class="btn btn-outline-secondary" href="#">Reports</a>
+        <a class="btn btn-outline-secondary" href="#">System Settings</a>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="col-lg-8">
+    <div class="p-4 bg-white rounded-4 shadow-sm h-100">
+      <h2 class="h6 mb-2">All users</h2>
+      <p class="text-muted">Helpful shortcuts shared across roles.</p>
+      <div class="row g-2">
+        <div class="col-md-4 d-grid"><a class="btn btn-outline-dark" href="#">Help & Docs</a></div>
+        <div class="col-md-4 d-grid"><a class="btn btn-outline-dark" href="#">Contact Support</a></div>
+        <div class="col-md-4 d-grid"><a class="btn btn-outline-dark" href="{{ url_for('landing') }}">About the App</a></div>
+      </div>
+    </div>
   </div>
 </div>
 {% endblock %}

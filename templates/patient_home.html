@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Patient Hub · Dementia Care{% endblock %}
+{% block content %}
+<section class="rounded-4 shadow-sm p-3 p-md-4 mb-4 position-relative overflow-hidden patient-hero">
+  <div class="d-flex align-items-center justify-content-between">
+    <div>
+      <h1 class="h5 mb-1 text-ink-90">Hi {{ user|capitalize }}, your care hub</h1>
+      <p class="text-ink-60 mb-0">Choose a section to update or explore.</p>
+    </div>
+    <div class="d-none d-md-flex gap-2">
+      <a class="btn btn-outline-ink btn-sm" href="{{ url_for('landing') }}">← Landing</a>
+      <a class="btn btn-cta-green btn-sm" href="{{ url_for('logout') }}">Logout</a>
+    </div>
+  </div>
+</section>
+
+<div class="row g-3">
+  {% macro card(icon, title, desc, url) -%}
+  <div class="col-12 col-sm-6 col-lg-4">
+    <a class="hub-card d-block rounded-4 border-0 shadow-sm p-3 text-decoration-none" href="{{ url }}">
+      <div class="d-flex align-items-start gap-3">
+        <div class="icon-pill {{ icon.bg }} {{ icon.txt }}"><i class="bi {{ icon.name }}"></i></div>
+        <div>
+          <div class="fw-semibold text-ink-90">{{ title }}</div>
+          <div class="small text-ink-70">{{ desc }}</div>
+        </div>
+      </div>
+    </a>
+  </div>
+  {%- endmacro %}
+
+  {{ card({'name':'bi-images','bg':'bg-pill-yellow','txt':'text-pill-yellow'}, 'Photo Gallery','Family photos with optional audio captions.', url_for('patient_gallery')) }}
+  {{ card({'name':'bi-capsule','bg':'bg-pill-green','txt':'text-pill-green'}, 'Medicine Reminder','Add times and mark taken/pending.', url_for('patient_meds')) }}
+  {{ card({'name':'bi-emoji-smile','bg':'bg-pill-grey','txt':''}, 'Mood Tracker','Log mood with a one-line note.', url_for('patient_mood')) }}
+  {{ card({'name':'bi-bell','bg':'bg-pill-yellow','txt':'text-pill-yellow'}, 'Memory Reminders','Birthdays, routines, familiar faces.', url_for('patient_memory')) }}
+  {{ card({'name':'bi-activity','bg':'bg-pill-green','txt':'text-pill-green'}, 'Activities','Walks, games, music—check off daily.', url_for('patient_activities')) }}
+  {{ card({'name':'bi-controller','bg':'bg-pill-grey','txt':''}, 'Memory Games','Light games to keep the mind engaged.', url_for('patient_games')) }}
+  {{ card({'name':'bi-speedometer2','bg':'bg-pill-green','txt':'text-pill-green'}, 'Dashboard','Progress & tracking overview.', url_for('patient_dashboard')) }}
+</div>
+
+<style>
+  .patient-hero{
+    background:
+      radial-gradient(900px 360px at -8% -25%, rgba(245,158,11,.10) 0%, rgba(245,158,11,0) 65%),
+      radial-gradient(820px 320px at 112% -25%, rgba(22,163,74,.12) 0%, rgba(22,163,74,0) 68%),
+      linear-gradient(180deg, #ffffff 0%, #f7f9fb 100%);
+  }
+  :root{ --ink-90:#111827; --ink-80:#1f2937; --ink-70:#334155; --ink-60:#475569; }
+  .text-ink-90{ color:var(--ink-90); } .text-ink-70{ color:var(--ink-70); } .text-ink-60{ color:var(--ink-60); }
+  .btn-cta-green{ background: linear-gradient(90deg, #16a34a 0%, #22c55e 100%); border:0; color:#fff; }
+  .btn-outline-ink{ color:var(--ink-80); border:1px solid rgba(0,0,0,.15); background:#fff; }
+  .btn-outline-ink:hover{ color:#fff; background:#111827; border-color:#111827; }
+  .hub-card{ background: linear-gradient(180deg, #ffffff 0%, #fafafa 100%); border:1px solid rgba(0,0,0,.06); }
+  .hub-card:hover{ border-color: rgba(22,163,74,.35); box-shadow:0 8px 18px rgba(22,163,74,.12); }
+  .icon-pill{ display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; border-radius:12px; font-size:1.2rem; border:1px solid rgba(0,0,0,.05); }
+  .bg-pill-green{ background: rgba(22,163,74,.12); } .text-pill-green{ color:#065f46; }
+  .bg-pill-yellow{ background: rgba(245,158,11,.14); } .text-pill-yellow{ color:#7a4a00; }
+  .bg-pill-grey{ background: rgba(148,163,184,.18); }
+  .rounded-4{ border-radius:1rem; }
+</style>
+{% endblock %}

@@ -1,146 +1,408 @@
 {% extends "base.html" %}
-{% block title %}Sign in · Flask Sections App{% endblock %}
+{% block title %}Sign in · Dementia Care{% endblock %}
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-lg-8">
-    <div class="card border-0 shadow-lg overflow-hidden">
-      <div class="row g-0">
-        <!-- Left: Brand/Illustration -->
-        <div class="col-md-5 d-none d-md-block bg-dark text-white position-relative">
-          <div class="h-100 d-flex flex-column justify-content-between p-4">
-            <div>
-              <div class="badge bg-primary mb-3">Welcome</div>
-              <h2 class="h4 fw-semibold mb-2">Sign in to continue</h2>
-              <p class="text-white-50 mb-0">Access Customer, Client & Admin sections from a single dashboard.</p>
-            </div>
-            <div class="small text-white-50">
-              <span class="opacity-75">Tip:</span> Demo users — <code>rajat/pass123</code>, <code>admin/admin123</code>, <code>guest/guest</code>
-            </div>
+
+<section class="login-hero rounded-4 shadow-sm p-3 p-md-4 mb-4 position-relative overflow-hidden">
+  <div class="row g-0 align-items-stretch rounded-4 overflow-hidden">
+    <!-- Left: Brand / Illustration -->
+    <div class="col-md-5 d-none d-md-flex flex-column justify-content-between login-illustration text-white position-relative">
+      <div class="p-4 p-lg-5">
+        <span class="badge badge-accent mb-3">Welcome</span>
+        <h2 class="h3 fw-semibold mb-2">Sign in to continue</h2>
+        <p class="text-soft mb-4">Access Patient, Caretaker & Admin portals securely.</p>
+
+        <!-- Snapshot cards -->
+        <div class="d-flex flex-column gap-3">
+          <div class="glass-card p-3">
+            <div class="small text-soft mb-1">Today</div>
+            <div class="fw-semibold">3 appointments · 5 reminders</div>
           </div>
-          <svg class="position-absolute bottom-0 end-0" width="180" height="180" viewBox="0 0 180 180" fill="none" aria-hidden="true">
-            <circle cx="140" cy="140" r="140" fill="rgba(255,255,255,0.06)"></circle>
-          </svg>
-        </div>
+          <div class="glass-card p-3">
+            <div class="small text-soft mb-1">Care notes</div>
+            <div class="fw-semibold">“Walked 15 mins, ate well”</div>
+          </div>
 
-        <!-- Right: Form -->
-        <div class="col-md-7 bg-white">
-          <div class="p-4 p-md-5">
-            <div class="mb-4">
-              <h1 class="h4 mb-1">Sign in</h1>
-              <p class="text-muted mb-0">Enter your credentials to continue.</p>
+          <!-- Animated doodles carousel -->
+          <div class="doodles-wrap mt-1">
+            <div class="d-flex align-items-center justify-content-between mb-1">
+              <div class="small text-soft">Gentle reminders</div>
+              <button type="button" class="btn btn-xs btn-outline-light" id="toggleAnimBtn" aria-pressed="false">Pause animation</button>
+            </div>
+            <div class="doodles-carousel" id="doodlesCarousel" aria-label="Friendly dementia care doodles">
+              <!-- Slide 1: Memory care -->
+              <div class="doodle-slide">
+                <svg class="doodle-svg floatY-1" width="56" height="56" viewBox="0 0 64 64" role="img" aria-label="Memory support brain">
+                  <defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#f59e0b"/><stop offset="100%" stop-color="#ffd34d"/></linearGradient></defs>
+                  <path d="M20 22c0-6 5-10 11-10s11 4 11 10c4 0 7 3 7 7s-3 7-7 7H20c-4 0-7-3-7-7s3-7 7-7z" fill="url(#g1)" stroke="rgba(255,255,255,.65)" stroke-width="2"/>
+                  <path d="M25 22c1-3 6-3 7 0m7 0c1-3 6-3 7 0M22 29h20" stroke="#0b0f14" stroke-linecap="round" stroke-width="2" opacity=".65"/>
+                </svg>
+                <div class="caption">Memory care, made kind</div>
+              </div>
+
+              <!-- Slide 2: Compassion -->
+              <div class="doodle-slide">
+                <svg class="doodle-svg floatY-2" width="56" height="56" viewBox="0 0 64 64" role="img" aria-label="Compassionate heart">
+                  <defs><linearGradient id="g2" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#16a34a"/><stop offset="100%" stop-color="#22c55e"/></linearGradient></defs>
+                  <path d="M32 50s-14-9-18-15c-4-6 0-13 7-13 5 0 8 4 11 7 3-3 6-7 11-7 7 0 11 7 7 13-4 6-18 15-18 15z"
+                        fill="url(#g2)" stroke="rgba(255,255,255,.65)" stroke-width="2"/>
+                </svg>
+                <div class="caption">Care with heart</div>
+              </div>
+
+              <!-- Slide 3: Routine -->
+              <div class="doodle-slide">
+                <svg class="doodle-svg floatY-3 pulse" width="56" height="56" viewBox="0 0 64 64" role="img" aria-label="Routine calendar">
+                  <rect x="10" y="12" rx="8" ry="8" width="44" height="36" fill="rgba(255,255,255,.10)" stroke="rgba(255,255,255,.6)"/>
+                  <rect x="18" y="22" width="10" height="8" rx="2" fill="#ffd34d"/>
+                  <rect x="34" y="22" width="10" height="8" rx="2" fill="#16a34a"/>
+                  <rect x="18" y="34" width="10" height="8" rx="2" fill="#94a3b8"/>
+                  <rect x="34" y="34" width="10" height="8" rx="2" fill="#ffd34d"/>
+                </svg>
+                <div class="caption">Small routines, big calm</div>
+              </div>
             </div>
 
-            <form method="post" novalidate>
-              <!-- Username -->
-              <div class="mb-3">
-                <label for="username" class="form-label">Username</label>
-                <div class="input-group">
-                  <span class="input-group-text" id="username-addon">@</span>
-                  <input
-                    id="username"
-                    name="username"
-                    type="text"
-                    class="form-control"
-                    placeholder="e.g., rajat"
-                    aria-describedby="username-addon"
-                    autocomplete="username"
-                    required>
-                </div>
-              </div>
-
-              <!-- Password + show/hide -->
-              <div class="mb-3">
-                <label for="password" class="form-label">Password</label>
-                <div class="input-group">
-                  <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    class="form-control"
-                    placeholder="Your password"
-                    autocomplete="current-password"
-                    required>
-                  <button class="btn btn-outline-secondary" type="button" id="togglePassword" aria-label="Show password">Show</button>
-                </div>
-              </div>
-
-              <div class="d-flex justify-content-between align-items-center mb-3">
-                <div class="form-check">
-                  <input class="form-check-input" type="checkbox" id="rememberMe">
-                  <label class="form-check-label" for="rememberMe">Remember me</label>
-                </div>
-                <!-- (Optional) Forgot link -->
-                <!-- <a href="#" class="small">Forgot password?</a> -->
-              </div>
-
-              <!-- reCAPTCHA -->
-              <div class="mb-3">
-                <div
-                  class="g-recaptcha"
-                  data-sitekey="{{ recaptcha_site_key }}"
-                  data-callback="onRecaptchaSuccess"
-                  data-expired-callback="onRecaptchaExpired">
-                </div>
-              </div>
-
-              <!-- Submit -->
-              <div class="d-grid">
-                <button id="submitBtn" class="btn btn-primary" type="submit" disabled>
-                  Sign In
-                </button>
-              </div>
-            </form>
-
-            <!-- Small helper text -->
-            <p class="text-muted small mt-3 mb-0">
-              By continuing you agree to our <a href="#" tabindex="-1">Terms</a> and <a href="#" tabindex="-1">Privacy Policy</a>.
-            </p>
+            <!-- Rotating micro-tips -->
+            <div class="micro-tips small text-soft mt-2" id="microTips" role="status" aria-live="polite">
+              Tip: Keep care notes short & specific.
+            </div>
           </div>
         </div>
       </div>
+
+      <div class="p-4 pt-0">
+        <div class="small text-soft">
+          Demo users — <code class="text-white-50">rajat/pass123</code>,
+          <code class="text-white-50">admin/admin123</code>,
+          <code class="text-white-50">guest/guest</code>
+        </div>
+      </div>
+
+      <div class="login-motif"></div>
     </div>
 
-    <!-- Mobile demo users note -->
-    <div class="d-md-none text-center text-muted small mt-3">
-      Demo users: <code>rajat/pass123</code> · <code>admin/admin123</code> · <code>guest/guest</code>
+    <!-- Right: Form + Benefits (stacked, same width) -->
+    <div class="col-md-7 bg-white">
+      <div class="p-4 p-lg-5">
+        <div class="mb-4">
+          <h1 class="h4 mb-1 text-ink-90">Sign in</h1>
+          <p class="text-ink-60 mb-0">Enter your credentials to continue.</p>
+        </div>
+
+        <form method="post" novalidate class="needs-validation">
+          <!-- Demo quick-pick chips -->
+          <div class="mb-3">
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+              <span class="small text-ink-70 me-1">Quick pick (demo):</span>
+              <button type="button" class="chip" data-u="rajat" data-p="pass123">Rajat</button>
+              <button type="button" class="chip" data-u="admin" data-p="admin123">Admin</button>
+              <button type="button" class="chip" data-u="guest" data-p="guest">Guest</button>
+            </div>
+          </div>
+
+          <!-- Username -->
+          <div class="mb-3">
+            <label for="username" class="form-label text-ink-80">Username</label>
+            <div class="input-group input-elev">
+              <span class="input-group-text"><i class="bi bi-person"></i></span>
+              <input id="username" name="username" type="text" class="form-control" placeholder="e.g., rajat"
+                     autocomplete="username" required>
+            </div>
+            <div class="form-text mt-1 text-ink-60">
+              Detected role: <span id="roleLabel" class="badge bg-secondary">—</span>
+            </div>
+          </div>
+
+          <!-- Password + show/hide -->
+          <div class="mb-2">
+            <label for="password" class="form-label text-ink-80">Password</label>
+            <div class="input-group input-elev">
+              <span class="input-group-text"><i class="bi bi-shield-lock"></i></span>
+              <input id="password" name="password" type="password" class="form-control"
+                     placeholder="Your password" autocomplete="current-password" required>
+              <button class="btn btn-outline-ink" type="button" id="togglePassword" aria-label="Show password">Show</button>
+            </div>
+          </div>
+
+          <!-- Password strength -->
+          <div class="mb-3">
+            <div class="progress strength-bar" style="height:6px;">
+              <div id="strengthFill" class="progress-bar bg-success" style="width:0%;"></div>
+            </div>
+            <div id="strengthText" class="form-text text-ink-60 mt-1">Password strength: —</div>
+          </div>
+
+          <!-- reCAPTCHA -->
+          <div class="mb-3">
+            <div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}"
+                 data-callback="onRecaptchaSuccess" data-expired-callback="onRecaptchaExpired"></div>
+          </div>
+
+          <!-- Submit -->
+          <div class="d-grid">
+            <button id="submitBtn" class="btn btn-cta-green" type="submit" disabled>Sign In</button>
+          </div>
+        </form>
+
+        <!-- Benefits / pledge -->
+        <div class="mt-4">
+          <div class="benefit-banner rounded-4 p-3 mb-3 d-flex align-items-center gap-3">
+            <div class="badge bg-success-subtle text-success-emph fw-semibold">Together we care</div>
+            <div class="small text-ink-70">
+              Signing in keeps routines clear, reduces missed meds, and builds calmer days.
+            </div>
+          </div>
+
+          <div class="row g-2">
+            <div class="col-12 col-sm-6">
+              <div class="benefit-card p-3 h-100 rounded-3">
+                <div class="d-flex align-items-start gap-2">
+                  <div class="icon-pill bg-pill-green text-pill-green"><i class="bi bi-check2-circle"></i></div>
+                  <div>
+                    <div class="fw-semibold text-ink-90 small">Fewer misses</div>
+                    <div class="small text-ink-70">Smart reminders for meds, meals & appointments.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-12 col-sm-6">
+              <div class="benefit-card p-3 h-100 rounded-3">
+                <div class="d-flex align-items-start gap-2">
+                  <div class="icon-pill bg-pill-yellow text-pill-yellow"><i class="bi bi-people"></i></div>
+                  <div>
+                    <div class="fw-semibold text-ink-90 small">Shared clarity</div>
+                    <div class="small text-ink-70">Everyone sees the same daily plan & notes.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Micro impact line -->
+          <div class="d-flex align-items-center justify-content-between mt-3 small text-ink-60">
+            <span>Every check-in helps build a calmer care routine.</span>
+            <span class="text-ink-80"><i class="bi bi-heart-fill text-success-emph me-1"></i>Let’s make dementia care kinder—together.</span>
+          </div>
+        </div>
+
+        <p class="text-ink-60 small mt-4 mb-0">
+          By continuing you agree to our <a href="#" class="link-ink" tabindex="-1">Terms</a> and
+          <a href="#" class="link-ink" tabindex="-1">Privacy Policy</a>.
+        </p>
+      </div>
     </div>
   </div>
+</section>
+
+<div class="d-md-none text-center text-ink-60 small mt-3">
+  Demo users: <code>rajat/pass123</code> · <code>admin/admin123</code> · <code>guest/guest</code>
 </div>
 
-<style>
-  /* Subtle polish */
-  .card .input-group-text { background: #f8f9fa; }
-  .card .form-control:focus { box-shadow: 0 0 0 .2rem rgba(13,110,253,.1); }
-</style>
-
-<!-- reCAPTCHA script -->
 <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-
 <script>
-  // Show/Hide password
+  // ===== Demo quick-pick chips =====
+  const chips = document.querySelectorAll('.chip');
+  const uInput = document.getElementById('username');
+  const pInput = document.getElementById('password');
+  chips.forEach(ch => ch.addEventListener('click', () => {
+    uInput.value = ch.dataset.u || '';
+    pInput.value = ch.dataset.p || '';
+    uInput.dispatchEvent(new Event('input')); // update role hint
+    pInput.dispatchEvent(new Event('input')); // update strength
+  }));
+
+  // ===== Role hint =====
+  const ROLES_MAP = {{ roles_map|tojson|safe }};
+  const roleLabel = document.getElementById('roleLabel');
+  function styleForRole(role) {
+    switch ((role || '').toLowerCase()) {
+      case 'admin': return 'bg-danger';
+      case 'patient': return 'bg-success';
+      case 'caretaker': return 'bg-info';
+      default: return 'bg-secondary';
+    }
+  }
+  function pretty(role) { return role ? role[0].toUpperCase() + role.slice(1).toLowerCase() : '—'; }
+  function updateRoleHint() {
+    const u = (uInput.value || '').trim();
+    const role = ROLES_MAP[u] || null;
+    roleLabel.textContent = pretty(role);
+    roleLabel.className = 'badge ' + styleForRole(role);
+  }
+  uInput.addEventListener('input', updateRoleHint);
+  document.addEventListener('DOMContentLoaded', updateRoleHint);
+
+  // ===== Show/Hide password =====
   const toggleBtn = document.getElementById('togglePassword');
-  const pwdInput = document.getElementById('password');
   toggleBtn.addEventListener('click', () => {
-    const isPwd = pwdInput.type === 'password';
-    pwdInput.type = isPwd ? 'text' : 'password';
+    const isPwd = pInput.type === 'password';
+    pInput.type = isPwd ? 'text' : 'password';
     toggleBtn.textContent = isPwd ? 'Hide' : 'Show';
     toggleBtn.setAttribute('aria-label', isPwd ? 'Hide password' : 'Show password');
   });
 
-  // Disable submit until CAPTCHA complete
-  const submitBtn = document.getElementById('submitBtn');
-  function onRecaptchaSuccess() {
-    submitBtn.disabled = false;
+  // ===== Strength meter (client-side heuristic) =====
+  const strengthFill = document.getElementById('strengthFill');
+  const strengthText = document.getElementById('strengthText');
+  function scorePassword(p) {
+    let s = 0; if (!p) return 0;
+    if (p.length >= 8) s += 25; if (/[A-Z]/.test(p)) s += 20;
+    if (/[a-z]/.test(p)) s += 20; if (/\d/.test(p)) s += 20;
+    if (/[^A-Za-z0-9]/.test(p)) s += 15; return Math.min(s, 100);
   }
-  function onRecaptchaExpired() {
-    submitBtn.disabled = true;
+  function updateStrength() {
+    const v = pInput.value || '';
+    const sc = scorePassword(v);
+    strengthFill.style.width = sc + '%';
+    strengthText.textContent = 'Password strength: ' + (sc >= 75 ? 'Strong' : sc >= 45 ? 'Okay' : 'Weak');
+  }
+  pInput.addEventListener('input', updateStrength);
+
+  // ===== reCAPTCHA enable/disable =====
+  const submitBtn = document.getElementById('submitBtn');
+  function onRecaptchaSuccess() { submitBtn.disabled = false; }
+  function onRecaptchaExpired() { submitBtn.disabled = true; }
+  window.onRecaptchaSuccess = onRecaptchaSuccess;
+  window.onRecaptchaExpired = onRecaptchaExpired;
+
+  // Enter to submit if captcha ok
+  pInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !submitBtn.disabled) e.currentTarget.form?.submit();
+  });
+
+  // ===== Doodles carousel (pure CSS + tiny JS for pause) =====
+  const carousel = document.getElementById('doodlesCarousel');
+  const toggleAnimBtn = document.getElementById('toggleAnimBtn');
+  let paused = false;
+  toggleAnimBtn.addEventListener('click', () => {
+    paused = !paused;
+    carousel.classList.toggle('paused', paused);
+    document.querySelectorAll('.doodle-svg').forEach(svg => {
+      svg.style.animationPlayState = paused ? 'paused' : 'running';
+    });
+    toggleAnimBtn.textContent = paused ? 'Resume animation' : 'Pause animation';
+    toggleAnimBtn.setAttribute('aria-pressed', String(paused));
+  });
+
+  // Rotate micro-tips
+  const tips = [
+    'Tip: Keep care notes short & specific.',
+    'Tip: Log meds at the moment you give them.',
+    'Tip: Use routines—same time, same place.',
+    'Tip: Celebrate small wins together.'
+  ];
+  const tipsEl = document.getElementById('microTips');
+  let ti = 0;
+  setInterval(() => {
+    ti = (ti + 1) % tips.length;
+    tipsEl.textContent = tips[ti];
+  }, 4000);
+</script>
+
+<style>
+  /* ===== Palette & ink ===== */
+  :root{
+    --ink-100:#0b0f1a; --ink-90:#111827; --ink-80:#1f2937; --ink-70:#334155; --ink-60:#475569;
+    --ink-50:#64748b; --ink-40:#94a3b8;
+    --panel:#f3f4f6; --panel-2:#fafafa;
+    --yellow:#f59e0b; --green:#16a34a; --green-lite:#22c55e; --green-deep:#14532d;
+  }
+  .text-soft{ color:#e5e7eb; opacity:.9; }
+  .text-ink-90{ color:var(--ink-90); } .text-ink-80{ color:var(--ink-80); }
+  .text-ink-70{ color:var(--ink-70); } .text-ink-60{ color:var(--ink-60); }
+  .link-ink{ color:var(--ink-80); text-decoration:none; } .link-ink:hover{ color:var(--ink-90); text-decoration:underline; }
+
+  /* ===== Page background ===== */
+  .login-hero{
+    background:
+      radial-gradient(900px 360px at -8% -25%, rgba(245,158,11,.18) 0%, rgba(245,158,11,0) 65%),
+      radial-gradient(820px 320px at 112% -25%, rgba(22,163,74,.18) 0%, rgba(22,163,74,0) 68%),
+      linear-gradient(180deg, #ffffff 0%, #f7f9fb 100%);
   }
 
-  // Little UX: press Enter in password submits if CAPTCHA ok
-  pwdInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !submitBtn.disabled) {
-      e.currentTarget.form?.submit();
-    }
-  });
-</script>
+  /* ===== Left illustration panel ===== */
+  .login-illustration{
+    background:
+      radial-gradient(1200px 500px at -30% -10%, rgba(245,158,11,.12) 0%, rgba(245,158,11,0) 70%),
+      linear-gradient(180deg, #0d1117 0%, #0b0f14 100%);
+    position: relative;
+  }
+  .login-motif{
+    position:absolute; inset:-15% -10% auto auto; width:42%; height:120%;
+    background:
+      radial-gradient(circle at 30% 20%, rgba(245,158,11,.22) 0 55%, transparent 55%),
+      radial-gradient(circle at 70% 60%, rgba(22,163,74,.22) 0 55%, transparent 55%);
+    filter: blur(28px); pointer-events:none;
+  }
+  .badge-accent{
+    background: linear-gradient(90deg, var(--yellow) 0%, #ffd34d 100%);
+    color:#111; border:0;
+  }
+  .text-white-50{ color:rgba(255,255,255,.75)!important; }
+
+  /* ===== Inputs & buttons ===== */
+  .input-elev .input-group-text{ background:#f8fafc; border-right:0; }
+  .input-elev .form-control{ border-left:0; }
+  .input-elev .form-control:focus{ box-shadow:0 0 0 .2rem rgba(22,163,74,.12); border-color: rgba(22,163,74,.45); }
+  .btn-cta-green{ background: linear-gradient(90deg, var(--green) 0%, var(--green-lite) 100%); border:0; color:#fff; box-shadow:0 8px 18px rgba(22,163,74,.28); }
+  .btn-cta-green:hover{ filter:brightness(.96); color:#fff; }
+  .btn-outline-ink{ color:var(--ink-80); border:1px solid rgba(0,0,0,.15); background:#fff; }
+  .btn-outline-ink:hover{ color:#fff; background:var(--ink-90); border-color:var(--ink-90); }
+  .chip{
+    border:1px solid rgba(0,0,0,.12); background:#fff; color:var(--ink-80);
+    padding:.25rem .6rem; border-radius:999px; font-size:.85rem; cursor:pointer;
+  }
+  .chip:hover{ background:#f8fafc; }
+
+  /* ===== Glass cards ===== */
+  .glass-card{
+    backdrop-filter: blur(8px);
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.14);
+    border-radius: 14px; color:#fff;
+  }
+
+  /* ===== Strength bar ===== */
+  .strength-bar { background:#eef2f7; }
+  .strength-bar .progress-bar{ transition: width .25s ease; background: linear-gradient(90deg, #e11d48, #f59e0b, var(--green-lite)); }
+
+  /* ===== Benefits under form ===== */
+  .benefit-banner{ background: linear-gradient(90deg, rgba(22,163,74,.10), rgba(245,158,11,.10)); border: 1px solid rgba(0,0,0,.06); }
+  .bg-success-subtle{ background: rgba(16,185,129,.14)!important; }
+  .text-success-emph{ color:#065f46!important; }
+  .benefit-card{ background:#ffffff; border:1px solid rgba(0,0,0,.06); }
+  .icon-pill{ display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:10px; font-size:1rem; border:1px solid rgba(0,0,0,.06); }
+  .bg-pill-green{ background: rgba(22,163,74,.12); } .text-pill-green{ color:#065f46; }
+  .bg-pill-yellow{ background: rgba(245,158,11,.14); } .text-pill-yellow{ color:#7a4a00; }
+  .bg-pill-grey{ background: rgba(148,163,184,.18); }
+
+  /* ===== Doodles carousel ===== */
+  .doodles-wrap{ border:1px solid rgba(255,255,255,.16); border-radius:14px; padding:.6rem .75rem; background: rgba(255,255,255,.06); }
+  .btn-xs{ --bs-btn-padding-y:.15rem; --bs-btn-padding-x:.5rem; --bs-btn-font-size:.8rem; }
+  .doodles-carousel{ display:grid; grid-auto-flow:column; grid-auto-columns:100%; overflow:hidden; position:relative; }
+  .doodles-carousel::after{ content:''; position:absolute; inset:0; pointer-events:none; background:linear-gradient(90deg, rgba(11,15,20,.0), rgba(11,15,20,.0) 85%, rgba(11,15,20,.15)); }
+  .doodles-carousel .doodle-slide{ display:grid; grid-template-columns:auto 1fr; align-items:center; gap:.6rem; padding:.3rem .2rem; color:#fff; }
+  .doodle-svg{ filter: drop-shadow(0 4px 10px rgba(0,0,0,.15)); }
+  .caption{ font-size:.9rem; opacity:.9; }
+
+  /* auto slide */
+  @keyframes slideX { 0%{transform:translateX(0)} 33%{transform:translateX(-100%)} 66%{transform:translateX(-200%)} 100%{transform:translateX(-300%)} }
+  .doodles-carousel{ animation: slideX 14s ease-in-out infinite; }
+  .doodles-carousel.paused{ animation-play-state: paused; }
+
+  /* float + pulse */
+  @keyframes floatY { 0%{transform:translateY(0)} 50%{transform:translateY(-6px)} 100%{transform:translateY(0)} }
+  .floatY-1{ animation: floatY 3.6s ease-in-out infinite; }
+  .floatY-2{ animation: floatY 4.2s ease-in-out infinite; }
+  .floatY-3{ animation: floatY 3.0s ease-in-out infinite; }
+  @keyframes pulseK { 0%,100%{opacity:1} 50%{opacity:.75} }
+  .pulse{ animation: pulseK 2.6s ease-in-out infinite; }
+
+  /* micro tips */
+  .micro-tips{ min-height:1.2rem; }
+
+  /* rounded helper */
+  .rounded-4{ border-radius:1rem; }
+</style>
+
 {% endblock %}

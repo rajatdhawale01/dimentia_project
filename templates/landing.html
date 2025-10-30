@@ -1,0 +1,282 @@
+{% extends "base.html" %}
+{% block title %}Dementia Care — Calm, Coordinated Support{% endblock %}
+
+{% block content %}
+
+<!-- ================= HERO (Black with Green/Yellow accents) ================= -->
+<section class="hero-dark rounded-4 shadow-sm p-4 p-md-5 mb-4 position-relative overflow-hidden">
+  {% if not session.user %}
+  <a href="{{ url_for('login') }}" class="hero-login-link">Sign in</a>
+  {% endif %}
+
+  <div class="d-flex justify-content-between align-items-start">
+    <div class="pe-lg-5">
+      <div class="d-flex align-items-center gap-2 mb-3">
+        <span class="badge badge-accent">Patients · Caregivers · Admins</span>
+        <span class="text-ink-50 small">Privacy-first</span>
+      </div>
+      <h1 class="display-6 fw-semibold mb-2 text-white">Dementia care, made calmer.</h1>
+      <p class="lead text-ink-40 mb-4">
+        A secure, role-based platform to coordinate routines, medications, and daily updates—so everyone
+        can focus more on people and less on paperwork.
+      </p>
+
+      <div class="d-flex flex-wrap align-items-center gap-3">
+        <a href="{{ url_for('login') }}" class="btn btn-green">
+          Sign in <span class="d-none d-sm-inline">to your workspace</span> →
+        </a>
+        <a href="#how-it-helps" class="btn btn-ghost-yellow">How it helps</a>
+        <a href="#faq" class="link-soft small">Read the FAQ</a>
+      </div>
+    </div>
+
+    <!-- Decorative snapshot cards -->
+    <div class="d-none d-lg-block">
+      <div class="glass-card p-3 mb-3">
+        <div class="small text-ink-60 mb-1">Today</div>
+        <div class="fw-semibold text-white">3 appointments · 5 reminders</div>
+      </div>
+      <div class="glass-card p-3">
+        <div class="small text-ink-60 mb-1">Care notes</div>
+        <div class="fw-semibold text-white">“Walked 15 mins, ate well”</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="motif"></div>
+</section>
+
+<!-- ================= Credibility strip ================= -->
+<section class="mb-4">
+  <div class="row g-3">
+    <div class="col-md-4">
+      <div class="feature-line bg-panel">
+        <i class="bi bi-shield-lock text-green"></i>
+        <div>
+          <div class="fw-semibold text-ink-90">Privacy & Security</div>
+          <small class="text-ink-70">RBAC, TLS, encryption at rest.</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="feature-line bg-panel">
+        <i class="bi bi-people text-yellow"></i>
+        <div>
+          <div class="fw-semibold text-ink-90">Care Team Collaboration</div>
+          <small class="text-ink-70">One source of truth for families & clinicians.</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="feature-line bg-panel">
+        <i class="bi bi-check2-circle text-green"></i>
+        <div>
+          <div class="fw-semibold text-ink-90">Simple & Reliable</div>
+          <small class="text-ink-70">Clear routines and timely reminders.</small>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= How it helps ================= -->
+<section id="how-it-helps" class="mb-5">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h2 class="h4 mb-0 text-ink-90">Built around real dementia care</h2>
+    <a class="small link-ink" href="{{ url_for('login') }}">Sign in →</a>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-lg-4">
+      <div class="card h-100 border-0 shadow-sm rounded-4 card-soft">
+        <div class="card-body p-4">
+          <div class="icon-pill bg-pill-green text-green mb-3"><i class="bi bi-calendar2-event"></i></div>
+          <h3 class="h6 text-ink-90">Consistent routines</h3>
+          <p class="text-ink-70 mb-0">Appointments, medication times, and daily tasks in a simple, predictable view.</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="card h-100 border-0 shadow-sm rounded-4 card-soft">
+        <div class="card-body p-4">
+          <div class="icon-pill bg-pill-yellow text-yellow mb-3"><i class="bi bi-journal-text"></i></div>
+          <h3 class="h6 text-ink-90">Care notes & updates</h3>
+          <p class="text-ink-70 mb-0">Lightweight logging for meals, sleep, mood, and activities to spot patterns.</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="card h-100 border-0 shadow-sm rounded-4 card-soft">
+        <div class="card-body p-4">
+          <div class="icon-pill bg-pill-grey text-ink-90 mb-3"><i class="bi bi-bell"></i></div>
+          <h3 class="h6 text-ink-90">Timely reminders</h3>
+          <p class="text-ink-70 mb-0">Gentle nudges aligned with each person’s care plan.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= Stats + Testimonial ================= -->
+<section class="mb-5">
+  <div class="row g-3">
+    <div class="col-lg-7">
+      <div class="p-4 p-md-5 rounded-4 shadow-sm bg-panel h-100">
+        <div class="row text-center">
+          <div class="col-6 col-md-4 mb-3 mb-md-0">
+            <div class="display-6 fw-semibold text-ink-90">98%</div>
+            <div class="text-ink-70 small">on-time reminders</div>
+          </div>
+          <div class="col-6 col-md-4 mb-3 mb-md-0">
+            <div class="display-6 fw-semibold text-ink-90">3×</div>
+            <div class="text-ink-70 small">faster updates</div>
+          </div>
+          <div class="col-12 col-md-4">
+            <div class="display-6 fw-semibold text-ink-90">-40%</div>
+            <div class="text-ink-70 small">missed appointments</div>
+          </div>
+        </div>
+        <hr class="soft-divider my-4">
+        <p class="mb-0 text-ink-60 small">
+          Illustrative impact metrics reported after standardizing routines and communication.
+        </p>
+      </div>
+    </div>
+    <div class="col-lg-5">
+      <div class="p-4 rounded-4 shadow-sm bg-panel h-100">
+        <div class="d-flex align-items-center gap-3 mb-2">
+          <div class="avatar-sq">A</div>
+          <div>
+            <div class="fw-semibold text-ink-90">Anita, Caregiver</div>
+            <div class="small text-ink-60">Nagpur</div>
+          </div>
+        </div>
+        <blockquote class="mb-0 text-ink-80">
+          “The routine is clear, meds aren’t missed, and I spend more time with my mother—<em>not</em> searching chats for updates.”
+        </blockquote>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FAQ ================= -->
+<section id="faq" class="mb-4">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h2 class="h5 mb-0 text-ink-90">Frequently asked questions</h2>
+    <a class="small link-ink" href="{{ url_for('login') }}">Sign in →</a>
+  </div>
+
+  <div class="accordion" id="faqAcc">
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="q1">
+        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#a1">
+          Is this only for clinical teams?
+        </button>
+      </h2>
+      <div id="a1" class="accordion-collapse collapse show" data-bs-parent="#faqAcc" aria-labelledby="q1">
+        <div class="accordion-body text-ink-80">
+          No. Families, caregivers, and admins each have role-based access with shared visibility where it helps most.
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="q2">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#a2">
+          How do you protect data?
+        </button>
+      </h2>
+      <div id="a2" class="accordion-collapse collapse" data-bs-parent="#faqAcc" aria-labelledby="q2">
+        <div class="accordion-body text-ink-80">
+          TLS in transit, encryption at rest, least-privilege RBAC, and audit trails—privacy by default.
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="q3">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#a3">
+          What’s the quickest way to start?
+        </button>
+      </h2>
+      <div id="a3" class="accordion-collapse collapse" data-bs-parent="#faqAcc" aria-labelledby="q3">
+        <div class="accordion-body text-ink-80">
+          Ask your admin for access, sign in, and follow the Home checklist to set up routines and reminders.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= Footer CTA ================= -->
+<section class="text-center mt-5">
+  <p class="text-ink-60 small mb-2">Have access already?</p>
+  <a class="btn btn-outline-green btn-sm" href="{{ url_for('login') }}">Sign in</a>
+</section>
+
+<!-- ================= THEME (Yellow · Green · Black · White-Grey) ================= -->
+<style>
+  :root{
+    --ink-90:#111827; --ink-80:#1f2937; --ink-70:#334155; --ink-60:#475569; --ink-50:#64748b; --ink-40:#94a3b8;
+    --panel:#f3f4f6; --panel-2:#fafafa;
+    --yellow:#f59e0b; --green:#16a34a; --green-deep:#14532d;
+  }
+
+  /* HERO */
+  .hero-dark{
+    background:
+      radial-gradient(900px 360px at -10% -20%, rgba(245,158,11,.20) 0%, rgba(245,158,11,0) 60%),
+      radial-gradient(780px 300px at 115% -20%, rgba(22,163,74,.18) 0%, rgba(22,163,74,0) 65%),
+      linear-gradient(180deg, #0d1117 0%, #0b0f14 100%);
+    border:1px solid rgba(255,255,255,.04);
+  }
+  .motif{
+    position:absolute; inset:-15% -12% auto auto; width:40%; height:120%;
+    background:
+      radial-gradient(circle at 30% 20%, rgba(245,158,11,.25) 0 55%, transparent 55%),
+      radial-gradient(circle at 70% 60%, rgba(22,163,74,.22) 0 55%, transparent 55%);
+    filter: blur(30px); pointer-events:none;
+  }
+  .hero-login-link{ position:absolute; top:16px; right:20px; font-size:.9rem; text-decoration:none; color:#e5e7eb; opacity:.85; }
+  .hero-login-link:hover{ opacity:1; text-decoration:underline; }
+  .badge-accent{ background: linear-gradient(90deg, var(--yellow) 0%, #ffd34d 100%); color:#111; border:0; }
+  .link-soft{ color:#e5e7eb; opacity:.9; text-decoration:none; }
+  .link-soft:hover{ opacity:1; text-decoration:underline; }
+
+  /* TEXT */
+  .text-white{ color:#fff !important; } .text-ink-90{ color:var(--ink-90); }
+  .text-ink-80{ color:var(--ink-80); } .text-ink-70{ color:var(--ink-70); }
+  .text-ink-60{ color:var(--ink-60); } .text-ink-50{ color:var(--ink-50); }
+  .text-ink-40{ color:var(--ink-40); }
+
+  /* BUTTONS */
+  .btn-green{ background: linear-gradient(90deg, var(--green) 0%, #22c55e 100%); border:0; color:#fff; box-shadow:0 8px 20px rgba(22,163,74,.35); }
+  .btn-green:hover{ filter:brightness(.95); color:#fff; }
+  .btn-ghost-yellow{ border:1px solid rgba(245,158,11,.55); color:#ffe8b3; background:rgba(245,158,11,.12); }
+  .btn-ghost-yellow:hover{ background:rgba(245,158,11,.18); color:#fff7d6; }
+  .btn-outline-green{ color:var(--green-deep); border:1px solid rgba(22,163,74,.55); }
+  .btn-outline-green:hover{ color:#fff; background:var(--green); border-color:var(--green); }
+  .text-green{ color:var(--green); } .text-yellow{ color:var(--yellow); }
+
+  /* PANELS & CARDS */
+  .bg-panel{ background: var(--panel); }
+  .card-soft{ background: linear-gradient(180deg, #ffffff 0%, var(--panel-2) 100%); }
+  .soft-divider{ border:0; height:1px; background:linear-gradient(90deg, rgba(0,0,0,.08), rgba(0,0,0,.03)); }
+
+  /* FEATURE ROW */
+  .feature-line{ display:flex; gap:.75rem; align-items:flex-start; padding:1rem 1.1rem; border-radius:14px; border:1px solid rgba(0,0,0,.06); }
+
+  /* ICON PILLS */
+  .icon-pill{ display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; border-radius:12px; font-size:1.2rem; border:1px solid rgba(0,0,0,.05); }
+  .bg-pill-green{ background: rgba(22,163,74,.12); } .bg-pill-yellow{ background: rgba(245,158,11,.14); } .bg-pill-grey{ background: rgba(148,163,184,.18); }
+
+  /* GLASS CARDS */
+  .glass-card{ backdrop-filter: blur(8px); background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12); border-radius: 14px; min-width: 260px; color:#fff; }
+
+  /* LINKS */
+  .link-ink{ color:var(--ink-80); text-decoration:none; } .link-ink:hover{ color:var(--ink-90); text-decoration:underline; }
+
+  .rounded-4{ border-radius:1rem; }
+</style>
+
+{% endblock %}

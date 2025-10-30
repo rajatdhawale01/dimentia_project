@@ -1,0 +1,285 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · Dementia Care{% endblock %}
+{% block content %}
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h1 class="h5 mb-0 text-ink-90">Your Dashboard</h1>
+  <a class="btn btn-outline-ink btn-sm" href="{{ url_for('patient_hub') }}">← Back to hub</a>
+</div>
+
+<!-- ===== Top KPIs ===== -->
+<div class="row g-3">
+  <!-- Med Adherence ring -->
+  <div class="col-12 col-md-4">
+    <div class="card border-0 shadow-sm rounded-4 h-100">
+      <div class="card-body p-3 d-flex align-items-center gap-3">
+        <div class="ring" style="--pct: {{ viz.today_adherence|default(0) }};">
+          <div class="ring-inner">
+            <div class="ring-number">{{ viz.today_adherence|round(0) }}%</div>
+            <div class="ring-label">Today</div>
+          </div>
+        </div>
+        <div>
+          <div class="fw-semibold text-ink-90">Medication Adherence</div>
+          <div class="small text-ink-60">Taken {{ stats.meds[0] }}/{{ stats.meds[1] }} doses</div>
+          {% if next_med %}
+          <div class="small mt-1">
+            <span class="badge bg-light text-ink-80">Next: {{ next_med.name }} @ {{ next_med.time }}</span>
+          </div>
+          {% else %}
+          <div class="small mt-1 text-ink-60">No pending meds right now.</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tasks & Activities -->
+  <div class="col-12 col-md-4">
+    <div class="card border-0 shadow-sm rounded-4 h-100">
+      <div class="card-body p-3">
+        <div class="fw-semibold text-ink-90 mb-2">Routines Progress</div>
+
+        <div class="kpi-line mb-2">
+          <div class="small text-ink-80">Tasks</div>
+          {% set p = (100 * stats.tasks[0] / stats.tasks[1]) if stats.tasks[1] else 0 %}
+          <div class="progress"><div class="progress-bar bg-green" style="width: {{ p|round(0) }}%"></div></div>
+          <div class="small text-ink-60">{{ stats.tasks[0] }}/{{ stats.tasks[1] }} completed</div>
+        </div>
+
+        <div class="kpi-line">
+          <div class="small text-ink-80">Activities (today)</div>
+          {% set a = stats.activities_done %}
+          {% set atotal = data.activities|length %}
+          {% set ap = (100 * a / atotal) if atotal else 0 %}
+          <div class="progress"><div class="progress-bar bg-yellow" style="width: {{ ap|round(0) }}%"></div></div>
+          <div class="small text-ink-60">{{ a }}/{{ atotal }} completed</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mood -->
+  <div class="col-12 col-md-4">
+    <div class="card border-0 shadow-sm rounded-4 h-100">
+      <div class="card-body p-3">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="fw-semibold text-ink-90">Mood</div>
+            <div class="display-6">{{ stats.mood }}</div>
+            <div class="small text-ink-60">{{ stats.notes_today }} note(s) today • {{ stats.notes }} total</div>
+          </div>
+          <div class="spark-wrap">
+            {% set spark = viz.mood_trend or [3,3,3,3,3,3,3] %}
+            {% set w = 120 %}{% set h = 36 %}
+            {% set maxy = 5 %}{% set miny = 1 %}
+            {% set step = (w / (spark|length - 1)) if spark|length>1 else w %}
+            {% set ns = namespace(points=[]) %}
+            {% for val in spark %}
+              {% set x = (loop.index0 * step) %}
+              {% set y = h - ((val - miny) / (maxy - miny)) * (h - 4) - 2 %}
+              {% set _ = ns.points.append(x ~ ',' ~ y) %}
+            {% endfor %}
+            <svg width="{{ w }}" height="{{ h }}" viewBox="0 0 {{ w }} {{ h }}" preserveAspectRatio="none">
+              <polyline fill="none" stroke="#10b981" stroke-width="2" points="{{ ns.points|join(' ') }}" />
+            </svg>
+            <div class="spark-label small text-ink-60">7-day mood</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Middle: Trends & Upcoming ===== -->
+<div class="row g-3 mt-1">
+  <!-- Med adherence trend -->
+  <div class="col-lg-7">
+    <div class="card border-0 shadow-sm rounded-4 h-100">
+      <div class="card-body p-3 p-md-4">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div class="fw-semibold text-ink-90">7-Day Medication Adherence</div>
+          <small class="text-ink-60">Percent per day</small>
+        </div>
+        {% set arr = viz.adherence_trend or [0,0,0,0,0,0,0] %}
+        {% set W=520 %}{% set H=140 %}
+        {% set step = (W / (arr|length - 1)) if arr|length>1 else W %}
+        {% set ns2 = namespace(pts=[]) %}
+        {% for v in arr %}
+          {% set x = (loop.index0 * step) %}
+          {% set y = (H-24) - (v/100) * (H-24) %}
+          {% set _ = ns2.pts.append(x ~ ',' ~ y) %}
+        {% endfor %}
+        <svg width="100%" height="{{ H }}" viewBox="0 0 {{ W }} {{ H }}" preserveAspectRatio="none" class="trend-svg">
+          <line x1="0" y1="{{ H-24 }}" x2="{{ W }}" y2="{{ H-24 }}" class="grid"></line>
+          <line x1="0" y1="{{ (H-24)/2 }}" x2="{{ W }}" y2="{{ (H-24)/2 }}" class="grid"></line>
+          <polyline points="0,{{ H-24 }} {{ ns2.pts|join(' ') }} {{ W }},{{ H-24 }}" class="area"></polyline>
+          <polyline points="{{ ns2.pts|join(' ') }}" class="line"></polyline>
+        </svg>
+        <div class="d-flex justify-content-between small text-ink-60 mt-1">
+          <span>6d ago</span><span>5d</span><span>4d</span><span>3d</span><span>2d</span><span>1d</span><span>Today</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upcoming -->
+  <div class="col-lg-5">
+    <div class="card border-0 shadow-sm rounded-4 h-100">
+      <div class="card-body p-3 p-md-4">
+        <div class="fw-semibold text-ink-90 mb-2">Upcoming</div>
+        <div class="small text-ink-60 mb-1">Appointments</div>
+        <ul class="list-unstyled mb-3 small">
+          {% for a in appts_upcoming %}
+            <li class="d-flex align-items-center gap-2 mb-1">
+              <i class="bi bi-calendar-event text-pill-green"></i>
+              <span class="fw-semibold text-ink-80">{{ a.title }}</span>
+              <span class="text-ink-60">· {{ a.dt_pretty }}</span>
+            </li>
+          {% else %}
+            <li class="text-ink-60">No upcoming appointments.</li>
+          {% endfor %}
+        </ul>
+
+        <div class="small text-ink-60 mb-1">Active reminders</div>
+        <ul class="list-unstyled small">
+          {% for r in rem_upcoming %}
+            <li class="d-flex align-items-center gap-2 mb-1">
+              <i class="bi bi-bell text-pill-yellow"></i>
+              <span class="fw-semibold text-ink-80">{{ r.title }}</span>
+              <span class="text-ink-60">· {{ r.dt_pretty }} · {{ r.kind|capitalize }}</span>
+            </li>
+          {% else %}
+            <li class="text-ink-60">No active reminders.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Bottom: Files & Quick adds ===== -->
+<div class="row g-3 mt-1">
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm rounded-4 h-100">
+      <div class="card-body p-3 p-md-4">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div class="fw-semibold text-ink-90">Reports & Files</div>
+          <span class="badge bg-light text-ink-80">{{ stats.files_count }} file(s)</span>
+        </div>
+        {% if data.files %}
+        <ul class="list-group list-group-flush small">
+          {% for f in data.files[:5] %}
+          <li class="list-group-item d-flex justify-content-between">
+            <a class="link-ink" href="{{ url_for('static', filename='uploads/' ~ f.name) }}" target="_blank">{{ f.name }}</a>
+            <form method="post" action="{{ url_for('patient_action') }}">
+              <input type="hidden" name="action" value="delete_file">
+              <input type="hidden" name="file_name" value="{{ f.name }}">
+              <button class="btn btn-link text-danger p-0" type="submit" title="Remove"><i class="bi bi-trash"></i></button>
+            </form>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+          <div class="text-ink-60 small">No files uploaded yet.</div>
+        {% endif %}
+
+        <form class="row g-2 mt-3" method="post" action="{{ url_for('patient_upload') }}" enctype="multipart/form-data">
+          <div class="col-9">
+            <input name="file" type="file" class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png,.webp" required>
+          </div>
+          <div class="col-3">
+            <button class="btn btn-cta-green btn-sm w-100" type="submit">Upload</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm rounded-4 h-100">
+      <div class="card-body p-3 p-md-4">
+        <div class="fw-semibold text-ink-90 mb-2">Quick Add</div>
+        <!-- Quick task -->
+        <form class="row g-2 mb-2" method="post" action="{{ url_for('patient_action') }}">
+          <input type="hidden" name="action" value="add_task">
+          <div class="col-9"><input name="task_title" class="form-control form-control-sm" placeholder="New task…"></div>
+          <div class="col-3"><button class="btn btn-outline-ink btn-sm w-100" type="submit">Add</button></div>
+        </form>
+        <!-- Quick appointment -->
+        <form class="row g-2 mb-2" method="post" action="{{ url_for('patient_action') }}">
+          <input type="hidden" name="action" value="add_appt">
+          <div class="col-md-5 col-12"><input name="appt_title" class="form-control form-control-sm" placeholder="Appointment title"></div>
+          <div class="col-md-4 col-7"><input name="appt_dt" type="datetime-local" class="form-control form-control-sm"></div>
+          <div class="col-md-3 col-5"><button class="btn btn-cta-green btn-sm w-100" type="submit">Add</button></div>
+        </form>
+        <!-- Quick reminder -->
+        <form class="row g-2" method="post" action="{{ url_for('patient_action') }}">
+          <input type="hidden" name="action" value="add_reminder">
+          <div class="col-md-5 col-12"><input name="rem_title" class="form-control form-control-sm" placeholder="Reminder title"></div>
+          <div class="col-md-4 col-7"><input name="rem_dt" type="datetime-local" class="form-control form-control-sm"></div>
+          <div class="col-md-3 col-5 d-flex gap-2">
+            <select name="rem_kind" class="form-select form-select-sm">
+              <option value="general">General</option>
+              <option value="family">Family</option>
+              <option value="routine">Routine</option>
+              <option value="face">Familiar Face</option>
+            </select>
+          </div>
+          <div class="col-12 d-flex justify-content-end align-items-center gap-2 mt-1">
+            <div class="form-check small">
+              <input class="form-check-input" type="checkbox" id="qaActive" name="rem_active" checked>
+              <label class="form-check-label" for="qaActive">Active</label>
+            </div>
+            <button class="btn btn-outline-ink btn-sm" type="submit">Add reminder</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  :root{
+    --ink-90:#111827; --ink-80:#1f2937; --ink-70:#334155; --ink-60:#475569;
+    --green:#16a34a; --green-2:#22c55e; --yellow:#f59e0b;
+  }
+  .text-ink-90{ color:var(--ink-90); }
+  .text-ink-80{ color:var(--ink-80); }
+  .text-ink-60{ color:var(--ink-60); }
+
+  .btn-outline-ink{ color:var(--ink-80); border:1px solid rgba(0,0,0,.15); background:#fff; }
+  .btn-outline-ink:hover{ color:#fff; background:var(--ink-90); border-color:var(--ink-90); }
+  .btn-cta-green{ background: linear-gradient(90deg, var(--green) 0%, var(--green-2) 100%); border:0; color:#fff; }
+
+  .rounded-4{ border-radius:1rem; }
+
+  .progress{ height:8px; background:#eef2f7; border-radius:8px; overflow:hidden; }
+  .progress-bar{ height:100%; }
+  .bg-green{ background: linear-gradient(90deg, var(--green) 0%, var(--green-2) 100%); }
+  .bg-yellow{ background: linear-gradient(90deg, #fedb7b 0%, var(--yellow) 100%); }
+
+  .ring{
+    --size:84px; --pct: 0;
+    width: var(--size); height: var(--size); border-radius: 50%;
+    background: conic-gradient(var(--green) calc(var(--pct) * 1%), #e5e7eb 0);
+    display:grid; place-items:center;
+  }
+  .ring-inner{
+    width: calc(var(--size) - 14px); height: calc(var(--size) - 14px);
+    border-radius:50%; background:#fff; display:grid; place-items:center; text-align:center;
+  }
+  .ring-number{ font-weight:700; line-height:1; }
+  .ring-label{ font-size:.75rem; color:var(--ink-60); }
+
+  .spark-wrap{ text-align:right; }
+  .trend-svg .grid{ stroke:#e5e7eb; stroke-width:1; }
+  .trend-svg .area{ fill:rgba(34,197,94,.15); }
+  .trend-svg .line{ stroke:#16a34a; stroke-width:2; fill:none; }
+
+  .kpi-line + .kpi-line{ margin-top:.75rem; }
+  .text-pill-green{ color:#065f46; }
+  .text-pill-yellow{ color:#7a4a00; }
+</style>
+
+{% endblock %}

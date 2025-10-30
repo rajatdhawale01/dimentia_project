@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Mood Tracker · Dementia Care{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h1 class="h5 mb-0 text-ink-90">Mood & Quick Notes</h1>
+  <a class="btn btn-outline-ink btn-sm" href="{{ url_for('patient_hub') }}">← Back to hub</a>
+</div>
+
+<section class="card border-0 shadow-sm rounded-4 mb-3">
+  <div class="card-body p-3 p-md-4">
+    <form class="row g-2" method="post" action="{{ url_for('patient_action') }}">
+      <input type="hidden" name="action" value="set_mood_and_note">
+      <div class="col-12 col-md-4">
+        <select name="mood" class="form-select form-select-sm">
+          {% set moods = ['🙂 Calm','😐 Okay','🙁 Low','😴 Tired','😀 Cheerful'] %}
+          {% for m in moods %}
+            <option value="{{ m }}" {% if data.mood == m %}selected{% endif %}>{{ m }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-12 col-md-6">
+        <input name="note" class="form-control form-control-sm" placeholder="E.g. Walked 15 mins, ate well">
+      </div>
+      <div class="col-12 col-md-2">
+        <button class="btn btn-cta-green btn-sm w-100" type="submit">Save</button>
+      </div>
+    </form>
+  </div>
+</section>
+
+<section class="card border-0 shadow-sm rounded-4">
+  <div class="card-body p-0">
+    {% if data.notes %}
+    <ul class="list-group list-group-flush small">
+      {% for n in data.notes %}
+      <li class="list-group-item d-flex justify-content-between align-items-start">
+        <div class="me-3">
+          <div class="fw-semibold">{{ n.mood }}</div>
+          <div class="text-ink-80">{{ n.text }}</div>
+          <div class="text-ink-60">{{ n.ts }}</div>
+        </div>
+        <form method="post" action="{{ url_for('patient_action') }}">
+          <input type="hidden" name="action" value="delete_note">
+          <input type="hidden" name="note_id" value="{{ n.id }}">
+          <button class="btn btn-link text-danger p-0" type="submit"><i class="bi bi-x-circle"></i></button>
+        </form>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+      <div class="p-3 text-ink-60 small">No notes yet — log mood + a short note.</div>
+    {% endif %}
+  </div>
+</section>
+
+<style>
+  :root{ --ink-90:#111827; --ink-80:#1f2937; --ink-60:#475569; --green:#16a34a; --green-lite:#22c55e;}
+  .text-ink-90{ color:var(--ink-90);} .text-ink-80{ color:var(--ink-80);} .text-ink-60{ color:var(--ink-60);}
+  .btn-cta-green{ background: linear-gradient(90deg, var(--green) 0%, var(--green-lite) 100%); border:0; color:#fff;}
+  .rounded-4{ border-radius:1rem; }
+</style>
+{% endblock %}

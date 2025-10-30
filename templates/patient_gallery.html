@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Photo Gallery · Dementia Care{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h1 class="h5 mb-0 text-ink-90">Photo Gallery</h1>
+  <a class="btn btn-outline-ink btn-sm" href="{{ url_for('patient_hub') }}">← Back to hub</a>
+</div>
+
+<div class="row g-3">
+  <div class="col-md-3">
+    <div class="list-group small">
+      {% for c in categories %}
+        <a class="list-group-item list-group-item-action {% if selected_category==c %}active{% endif %}"
+           href="{{ url_for('patient_gallery', category=c) }}">{{ c }}</a>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="col-md-9">
+    {% if images %}
+    <div class="row g-3">
+      {% for item in images %}
+      <div class="col-6 col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+          <img class="card-img-top" src="{{ url_for('static', filename=item.img) }}" alt="{{ item.name }}">
+          <div class="card-body p-3">
+            <div class="small text-ink-80">{{ item.name }}</div>
+            {% if item.audio %}
+              <audio controls class="w-100 mt-2">
+                <source src="{{ url_for('static', filename=item.audio) }}">
+              </audio>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+      <div class="text-ink-60">No images found in this category.</div>
+    {% endif %}
+  </div>
+</div>
+
+<style>
+  :root{ --ink-90:#111827; --ink-80:#1f2937; --ink-60:#475569; }
+  .text-ink-90{ color:var(--ink-90);} .text-ink-80{ color:var(--ink-80);} .text-ink-60{ color:var(--ink-60);}
+  .rounded-4{ border-radius:1rem; }
+</style>
+{% endblock %}
