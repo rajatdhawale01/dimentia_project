@@ -18,8 +18,8 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 ALLOWED_UPLOADS = {".pdf", ".png", ".jpg", ".jpeg", ".webp"}
 
 # reCAPTCHA keys (use env in prod)
-RECAPTCHA_SITE_KEY = os.getenv("RECAPTCHA_SITE_KEY", "6Leia9grAAAAANlSX7hcOxUh5afONz77LG8twThz")
-RECAPTCHA_SECRET_KEY = os.getenv("RECAPTCHA_SECRET_KEY", "6Leia9grAAAAAMJsKqvuRZ9ewNxSzgnnPFUoBP5a")
+RECAPTCHA_SITE_KEY = os.getenv("RECAPTCHA_SITE_KEY", "6LeKdPwrAAAAAKKbjpvL6ocnR2sL89xfQYJYT0uZ")
+RECAPTCHA_SECRET_KEY = os.getenv("RECAPTCHA_SECRET_KEY", "6LeKdPwrAAAAAF-hj2VOmvfE55KLGqSXMLyRBdbw")
 
 # Demo users (username -> {password, role})  roles: admin | patient | caretaker
 DEMO_USERS = {
