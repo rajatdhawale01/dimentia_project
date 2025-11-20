@@ -1,295 +1,888 @@
-{% extends "base.html" %}
-{% block title %}Mood Tracker · Dementia Care{% endblock %}
-{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mood Tracker · Dementia Care</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<div class="d-flex align-items-center justify-content-between mb-3">
-  <h1 class="h5 mb-0 text-ink-90">Mood Tracker</h1>
-  <a class="btn btn-outline-ink btn-sm" href="{{ url_for('patient_hub') }}">← Back to hub</a>
-</div>
+  <style>
+    :root{
+      --ink-90:#0f172a; --ink-80:#1f2937; --ink-70:#334155; --ink-60:#64748b;
+      --green:#16a34a; --green-2:#22c55e;
+      --accent:#6366f1;
+      --c-cheer:#10b981; --c-calm:#60a5fa; --c-okay:#f59e0b; --c-tired:#a78bfa; --c-low:#ef4444;
+      --card-bg:#ffffff;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color:var(--ink-90);
+      background: radial-gradient(circle at top left, #e0f2fe 0, #eff6ff 30%, #f9fafb 60%, #f4f4f5 100%);
+    }
+    a{text-decoration:none;color:inherit;}
 
-<div class="row g-3">
-  <!-- ===== TODAY ===== -->
-  <div class="col-lg-6">
-    <section class="card border-0 shadow-sm rounded-4 h-100">
-      <div class="card-body p-3 p-md-4">
-        <div class="d-flex align-items-center justify-content-between mb-2">
-          <div class="fw-semibold text-ink-90">Today</div>
-          <span class="badge bg-light text-ink-80">Current: {{ data.mood }}</span>
+    /* Top bar */
+    .app-shell{
+      max-width:1200px;
+      margin:0 auto;
+      padding:1.4rem 1rem 2.4rem;
+    }
+    .app-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:1.3rem;
+    }
+    .app-title{
+      display:flex;
+      align-items:center;
+      gap:.6rem;
+    }
+    .app-logo{
+      width:36px;height:36px;
+      border-radius:999px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:radial-gradient(circle at 30% 20%, #bbf7d0, #22c55e);
+      box-shadow:0 8px 18px rgba(22,163,74,.35);
+      font-size:1.35rem;
+    }
+    h1{
+      margin:0;
+      font-size:1.35rem;
+      letter-spacing:.01em;
+    }
+    .app-subtitle{
+      font-size:.8rem;
+      color:var(--ink-60);
+    }
+    .badge-soft{
+      display:inline-flex;
+      align-items:center;
+      gap:.35rem;
+      padding:.25rem .7rem;
+      font-size:.78rem;
+      border-radius:999px;
+      background:rgba(99,102,241,.08);
+      color:#4338ca;
+      border:1px solid rgba(129,140,248,.35);
+    }
+    .badge-dot{
+      width:7px;height:7px;border-radius:50%;
+      background:#22c55e;
+      box-shadow:0 0 0 4px rgba(34,197,94,.25);
+    }
+
+    /* Layout */
+    .grid-2{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:1.2rem;
+    }
+    @media (min-width:900px){
+      .grid-2{ grid-template-columns:minmax(0,1.15fr) minmax(0,0.85fr); }
+    }
+
+    /* Cards */
+    .card{
+      background:var(--card-bg);
+      border-radius:1.2rem;
+      border:1px solid rgba(15,23,42,.04);
+      box-shadow:
+        0 18px 40px rgba(15,23,42,.08),
+        0 0 0 1px rgba(255,255,255,.8) inset;
+      position:relative;
+      overflow:hidden;
+    }
+    .card::before{
+      content:"";
+      position:absolute;
+      inset:-40%;
+      background:radial-gradient(circle at top right, rgba(129,140,248,.07), transparent 55%);
+      opacity:.9;
+      pointer-events:none;
+    }
+    .card-body{
+      position:relative;
+      padding:1.1rem .95rem 1.15rem;
+    }
+    @media (min-width:768px){
+      .card-body{ padding:1.35rem 1.5rem 1.4rem; }
+    }
+
+    .d-flex{ display:flex; }
+    .justify-between{ justify-content:space-between; }
+    .align-center{ align-items:center; }
+    .gap-2{ gap:.5rem; }
+    .gap-3{ gap:.75rem; }
+    .mb-0{ margin-bottom:0; }
+    .mb-1{ margin-bottom:.25rem; }
+    .mb-2{ margin-bottom:.55rem; }
+    .mb-3{ margin-bottom:1rem; }
+    .mt-3{ margin-top:1rem; }
+    .fw-semibold{ font-weight:600; }
+    .small{ font-size:.85rem; }
+    .text-ink-60{ color:var(--ink-60); }
+    .text-ink-70{ color:var(--ink-70); }
+    .text-ink-80{ color:var(--ink-80); }
+
+    /* Buttons */
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:.25rem;
+      padding:.44rem .9rem;
+      border-radius:999px;
+      border:1px solid transparent;
+      font-size:.85rem;
+      cursor:pointer;
+      background:#e5e7eb;
+      transition:.16s all ease-out;
+    }
+    .btn-sm{ padding:.3rem .7rem; font-size:.78rem; }
+    .btn-link{
+      background:none;
+      border:none;
+      padding:0;
+      color:#2563eb;
+      cursor:pointer;
+    }
+    .btn-outline-ink{
+      background:#fff;
+      color:var(--ink-80);
+      border-color:rgba(148,163,184,.7);
+    }
+    .btn-outline-ink:hover{
+      background:#0f172a;
+      color:#f9fafb;
+      border-color:#0f172a;
+      box-shadow:0 10px 18px rgba(15,23,42,.45);
+      transform:translateY(-1px);
+    }
+    .btn-cta-green{
+      background:linear-gradient(120deg, var(--green) 0%, var(--green-2) 45%, #4ade80 100%);
+      color:#f9fafb;
+      border:none;
+      box-shadow:0 12px 24px rgba(22,163,74,.45);
+    }
+    .btn-cta-green:hover{
+      filter:brightness(1.05);
+      transform:translateY(-1px);
+    }
+    .btn-chip{
+      border:1px dashed rgba(148,163,184,.8);
+      background:rgba(255,255,255,.9);
+      color:#0f172a;
+      padding:.25rem .65rem;
+      border-radius:999px;
+      font-size:.78rem;
+      cursor:pointer;
+    }
+    .btn-chip:hover{
+      background:#0f172a;
+      color:#f9fafb;
+      border-style:solid;
+    }
+
+    /* Inputs */
+    textarea{
+      width:100%;
+      border-radius:.9rem;
+      border:1px solid #e5e7eb;
+      padding:.55rem .8rem;
+      font-family:inherit;
+      resize:vertical;
+      min-height:80px;
+      font-size:.9rem;
+      background:rgba(248,250,252,.9);
+      transition:.18s all ease-out;
+    }
+    textarea:focus{
+      outline:none;
+      border-color:var(--accent);
+      box-shadow:0 0 0 1px rgba(129,140,248,.35), 0 14px 30px rgba(15,23,42,.12);
+      background:#ffffff;
+    }
+
+    /* Questions */
+    .question-list{ display:flex; flex-direction:column; gap:.55rem; }
+    .question-tile{
+      border:1px solid rgba(148,163,184,.4);
+      border-radius:.95rem;
+      padding:.65rem .8rem;
+      background:radial-gradient(circle at top left, rgba(239,246,255,.9), rgba(248,250,252,.95));
+      position:relative;
+      overflow:hidden;
+    }
+    .question-tile::after{
+      content:"";
+      position:absolute;
+      inset:-40%;
+      background:radial-gradient(circle at top right, rgba(129,140,248,.08), transparent 55%);
+      opacity:.7;
+      pointer-events:none;
+    }
+    .question-text{
+      font-size:.9rem;
+      color:var(--ink-80);
+      margin-bottom:.3rem;
+    }
+
+    .form-check{
+      display:flex;
+      align-items:center;
+      gap:.35rem;
+      font-size:.83rem;
+      margin-bottom:.1rem;
+      position:relative;
+    }
+    .form-check-input{
+      width:.9rem;
+      height:.9rem;
+      cursor:pointer;
+      accent-color:var(--accent);
+    }
+    .form-check-label{
+      cursor:pointer;
+    }
+
+    /* History list */
+    .list{
+      list-style:none;
+      padding:0;
+      margin:0;
+    }
+    .list-item{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      padding:.45rem 0;
+      border-bottom:1px dashed #e2e8f0;
+      gap:.5rem;
+    }
+    .list-item:last-child{ border-bottom:none; }
+
+    .pill-mood{
+      display:inline-flex;
+      align-items:center;
+      gap:.25rem;
+      padding:.1rem .55rem;
+      border-radius:999px;
+      font-size:.78rem;
+      background:rgba(15,23,42,.03);
+    }
+
+    /* Breather */
+    .breather{
+      position:relative;
+      margin-top:1rem;
+      padding:1rem;
+      border:1px solid rgba(148,163,184,.5);
+      border-radius:1rem;
+      text-align:center;
+      background:radial-gradient(circle at top, #ecfdf5, #f8fafc);
+    }
+    .breather-circle{
+      width:80px;
+      height:80px;
+      border-radius:50%;
+      margin:0 auto;
+      background:radial-gradient(circle at 50% 50%, rgba(34,197,94,.28), rgba(34,197,94,.04));
+      transition: transform 4s ease-in-out;
+    }
+    .breather.in .breather-circle{ transform: scale(1.18); }
+    .breather.out .breather-circle{ transform: scale(0.82); }
+    .breather-label{
+      margin-top:.5rem;
+      color:#065f46;
+      font-weight:600;
+      font-size:.9rem;
+    }
+    .hidden{ display:none; }
+
+    /* Sparkline */
+    #sparkSvg .grid{ stroke:#e2e8f0; stroke-width:1; }
+    #sparkSvg .line{ stroke:var(--accent); stroke-width:2; fill:none; }
+    #sparkSvg .area{ fill:rgba(129,140,248,.18); }
+
+    /* Donut */
+    .donut-ring{ fill:transparent; stroke:#e5e7eb; stroke-width:3; }
+    .donut-slice{ fill:transparent; stroke-width:3; }
+    .dot{ display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:.3rem; }
+    .dot-cheerful{ background:var(--c-cheer); }
+    .dot-calm{ background:var(--c-calm); }
+    .dot-okay{ background:var(--c-okay); }
+    .dot-tired{ background:var(--c-tired); }
+    .dot-low{ background:var(--c-low); }
+
+    .nudge-tile{
+      border:1px solid rgba(148,163,184,.5);
+      padding:.65rem .85rem;
+      border-radius:1rem;
+      background:radial-gradient(circle at top left, #eef2ff, #f9fafb);
+      font-size:.83rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="app-title">
+        <div class="app-logo">💚</div>
+        <div>
+          <h1>Mood Tracker</h1>
+          <div class="app-subtitle">Gentle check-ins for dementia care</div>
         </div>
+      </div>
+      <div class="badge-soft">
+        <span class="badge-dot"></span>
+        <span>Auto mood estimation</span>
+      </div>
+    </header>
 
-        <form method="post" action="{{ url_for('patient_action') }}">
-          <input type="hidden" name="action" value="set_mood_and_note">
-
-          <!-- Mood options -->
-          <div class="mood-grid mb-3">
-            {% set MOODS = ["😀 Cheerful","🙂 Calm","😐 Okay","😴 Tired","🙁 Low"] %}
-            {% for m in MOODS %}
-            <label class="mood-pill {% if data.mood == m %}active{% endif %}">
-              <input type="radio" name="mood" value="{{ m }}" {% if data.mood == m %}checked{% endif %} hidden>
-              <span class="mood-emoji">{{ m.split(' ')[0] }}</span>
-              <span class="mood-text">{{ m.split(' ', 1)[1] }}</span>
-            </label>
-            {% endfor %}
+    <div class="grid-2">
+      <!-- LEFT: TODAY QUIZ -->
+      <section class="card">
+        <div class="card-body">
+          <div class="d-flex justify-between align-center mb-2">
+            <div class="fw-semibold">Today’s check-in</div>
+            <div class="small text-ink-70" id="lastMoodLabel">Last entry: —</div>
           </div>
 
-          <!-- Quick tags -->
-          <div class="small text-ink-70 mb-1">Quick tags</div>
-          <div class="d-flex flex-wrap gap-2 mb-3">
-            {% for tag in ["Good sleep","Walked","Ate well","Social call","Pain","Anxious","Headache"] %}
-            <button class="btn btn-chip" type="button" data-insert="{{ tag }}">#{{ tag }}</button>
-            {% endfor %}
+          <form id="moodForm">
+            <div class="small text-ink-60 mb-2">
+              Answer a few short questions. We’ll gently estimate today’s mood and keep the last 7 check-ins. 🌱
+            </div>
+
+            <!-- YES / NO -->
+            <div class="mb-3">
+              <div class="small text-ink-70 mb-1">Quick Yes / No</div>
+              <div id="yesNoQuestions" class="question-list"></div>
+            </div>
+
+            <!-- MCQ -->
+            <div class="mb-3">
+              <div class="small text-ink-70 mb-1">More about today</div>
+              <div id="mcqQuestions" class="question-list"></div>
+            </div>
+
+            <!-- Note & tags -->
+            <div class="mb-3">
+              <textarea id="noteBox" placeholder="Add an optional note… (e.g., ‘Walked 15 mins, ate well’)."></textarea>
+              <div class="d-flex justify-between align-center mt-1">
+                <small class="text-ink-60">Notes help spot patterns over time.</small>
+                <button class="btn-link small" type="button" id="promptBtn">Need a prompt?</button>
+              </div>
+            </div>
+
+            <div class="small text-ink-70 mb-1">Quick tags</div>
+            <div class="d-flex gap-2 mb-3" style="flex-wrap:wrap;">
+              <button class="btn-chip" type="button" data-insert="Good sleep">#GoodSleep</button>
+              <button class="btn-chip" type="button" data-insert="Walked">#Walked</button>
+              <button class="btn-chip" type="button" data-insert="Ate well">#AteWell</button>
+              <button class="btn-chip" type="button" data-insert="Social call">#SocialCall</button>
+              <button class="btn-chip" type="button" data-insert="Pain">#Pain</button>
+              <button class="btn-chip" type="button" data-insert="Anxious">#Anxious</button>
+              <button class="btn-chip" type="button" data-insert="Headache">#Headache</button>
+            </div>
+
+            <!-- Mood preview -->
+            <div class="small text-ink-70 mb-2" id="moodPreview">
+              Estimated mood: — (answer a few questions to see)
+            </div>
+
+            <div class="d-flex gap-2 align-center">
+              <button class="btn btn-cta-green" type="submit">Save today’s mood</button>
+              <button class="btn btn-outline-ink" type="button" id="oneMinute">1-minute reset</button>
+            </div>
+          </form>
+
+          <!-- Breathing box -->
+          <div id="breather" class="breather hidden">
+            <div class="breather-circle" id="breathCircle"></div>
+            <div class="breather-label" id="breathLabel">Breathe in…</div>
+            <button class="btn btn-sm mt-2" type="button" id="breathStop">Stop</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT: HISTORY & INSIGHTS -->
+      <section class="card">
+        <div class="card-body">
+          <div class="d-flex justify-between align-center mb-2">
+            <div class="fw-semibold">Recent history</div>
+            <small class="text-ink-60"><span id="entryCount">0</span> / 7 entries</small>
           </div>
 
-          <!-- Note -->
-          <div class="mb-3">
-            <textarea class="form-control" name="note" id="noteBox" rows="3" placeholder="Add an optional note… (e.g., 'Walked 15 mins, ate well')"></textarea>
-            <div class="d-flex justify-content-between mt-1">
-              <small class="text-ink-60">Journaling helps spot patterns over time.</small>
-              <button class="btn btn-link p-0 small" type="button" id="promptBtn">Need a prompt?</button>
+          <div id="historyContainer" class="mb-3 small text-ink-70">
+            No entries yet — save today’s mood to get started.
+          </div>
+
+          <button class="btn btn-sm btn-outline-ink mb-3" type="button" id="clearAll">
+            Clear all history
+          </button>
+
+          <!-- Insights -->
+          <div class="fw-semibold mb-2">7-entry mood trend</div>
+          <div class="mb-2">
+            <svg id="sparkSvg" width="100%" height="120" viewBox="0 0 520 120" preserveAspectRatio="none">
+              <line x1="0" y1="110" x2="520" y2="110" class="grid"></line>
+              <polyline id="sparkLine" class="line" points=""></polyline>
+              <polyline id="sparkArea" class="area" points=""></polyline>
+            </svg>
+          </div>
+
+          <div class="d-flex gap-3 align-center mb-2">
+            <svg id="donut" width="120" height="120" viewBox="0 0 42 42">
+              <circle class="donut-ring" cx="21" cy="21" r="15.915"></circle>
+              <!-- slices injected -->
+            </svg>
+            <div class="small">
+              <div><span class="dot dot-cheerful"></span> Cheerful</div>
+              <div><span class="dot dot-calm"></span> Calm</div>
+              <div><span class="dot dot-okay"></span> Okay</div>
+              <div><span class="dot dot-tired"></span> Tired</div>
+              <div><span class="dot dot-low"></span> Low</div>
             </div>
           </div>
 
-          <div class="d-flex align-items-center gap-2">
-            <button class="btn btn-cta-green" type="submit">Save today’s mood</button>
-            <button class="btn btn-outline-ink" type="button" id="oneMinute">1-minute reset</button>
-          </div>
-        </form>
-
-        <!-- Mini breathing overlay -->
-        <div id="breather" class="breather d-none">
-          <div class="breather-circle" id="breathCircle"></div>
-          <div class="breather-label" id="breathLabel">Breathe in…</div>
-          <button class="btn btn-light btn-sm mt-2" type="button" id="breathStop">Stop</button>
-        </div>
-      </div>
-    </section>
-  </div>
-
-  <!-- ===== HISTORY ===== -->
-  <div class="col-lg-6">
-    <section class="card border-0 shadow-sm rounded-4 h-100">
-      <div class="card-body p-3 p-md-4">
-        <div class="d-flex align-items-center justify-content-between mb-2">
-          <div class="fw-semibold text-ink-90">Recent history</div>
-          <small class="text-ink-60">{{ data.notes|length }} total entries</small>
-        </div>
-
-        {% if data.notes %}
-        <ul class="list-group list-group-flush">
-          {% for n in data.notes[:8] %}
-          <li class="list-group-item d-flex justify-content-between align-items-start">
-            <div class="me-3">
-              <div class="fw-semibold">{{ n.mood }}</div>
-              {% if n.text %}<div class="small text-ink-70">{{ n.text }}</div>{% endif %}
-              <div class="small text-ink-60">{{ n.ts }}</div>
-            </div>
-            <form method="post" action="{{ url_for('patient_action') }}">
-              <input type="hidden" name="action" value="delete_note">
-              <input type="hidden" name="note_id" value="{{ n.id }}">
-              <button class="btn btn-sm btn-link text-danger" type="submit" title="Delete">
-                <i class="bi bi-trash"></i>
-              </button>
-            </form>
-          </li>
-          {% endfor %}
-        </ul>
-        {% else %}
-          <div class="text-ink-60 small">No entries yet—save today’s mood to get started.</div>
-        {% endif %}
-      </div>
-    </section>
-  </div>
-</div>
-
-<!-- ===== INSIGHTS ===== -->
-<section class="card border-0 shadow-sm rounded-4 mt-3">
-  <div class="card-body p-3 p-md-4">
-    <div class="row g-3">
-      <div class="col-md-5">
-        <div class="fw-semibold text-ink-90 mb-2">7-day mood trend</div>
-        <div id="sparkWrap">
-          <svg id="sparkSvg" width="100%" height="120" viewBox="0 0 520 120" preserveAspectRatio="none">
-            <line x1="0" y1="110" x2="520" y2="110" class="grid"></line>
-            <polyline id="sparkLine" class="line" points=""></polyline>
-            <polyline id="sparkArea" class="area" points=""></polyline>
-          </svg>
-          <div class="d-flex justify-content-between small text-ink-60">
-            <span>6d</span><span>5d</span><span>4d</span><span>3d</span><span>2d</span><span>1d</span><span>Today</span>
+          <div class="nudge-tile">
+            <div class="small text-ink-70 mb-1">Gentle nudges</div>
+            <ul class="small text-ink-80" style="padding-left:1.1rem; margin:0;">
+              <li>Drink a glass of water 💧</li>
+              <li>2-minute stretch or sunlight ☀️</li>
+              <li>Message a loved one 💌</li>
+            </ul>
           </div>
         </div>
-      </div>
-
-      <div class="col-md-4">
-        <div class="fw-semibold text-ink-90 mb-2">Mood distribution</div>
-        <div class="d-flex align-items-center gap-3">
-          <svg id="donut" width="120" height="120" viewBox="0 0 42 42" class="donut">
-            <circle class="donut-ring" cx="21" cy="21" r="15.915"></circle>
-            <!-- slices injected by JS -->
-          </svg>
-          <div class="small">
-            <div><span class="dot dot-cheerful"></span> Cheerful</div>
-            <div><span class="dot dot-calm"></span> Calm</div>
-            <div><span class="dot dot-okay"></span> Okay</div>
-            <div><span class="dot dot-tired"></span> Tired</div>
-            <div><span class="dot dot-low"></span> Low</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-md-3">
-        <div class="fw-semibold text-ink-90 mb-2">Gentle nudges</div>
-        <ul class="small text-ink-80 mb-2">
-          <li>Drink a glass of water 💧</li>
-          <li>2-minute stretch or sunlight ☀️</li>
-          <li>Message a loved one 💌</li>
-        </ul>
-        <div class="nudge-tile">
-          <div class="small text-ink-70">Sleep checklist</div>
-          <div class="text-ink-90 fw-semibold">Consistent bedtime?</div>
-          <div class="small text-ink-60">Aim for a calm wind-down routine.</div>
-        </div>
-      </div>
+      </section>
     </div>
   </div>
-</section>
 
-<style>
-  :root{
-    --ink-90:#111827; --ink-80:#1f2937; --ink-70:#334155; --ink-60:#475569;
-    --green:#16a34a; --green-2:#22c55e; --yellow:#f59e0b;
-    --c-cheer:#10b981; --c-calm:#60a5fa; --c-okay:#f59e0b; --c-tired:#a78bfa; --c-low:#ef4444;
-  }
-  .text-ink-90{ color:var(--ink-90); } .text-ink-80{ color:var(--ink-80); }
-  .text-ink-70{ color:var(--ink-70); } .text-ink-60{ color:var(--ink-60); }
-  .btn-outline-ink{ color:var(--ink-80); border:1px solid rgba(0,0,0,.15); background:#fff; }
-  .btn-outline-ink:hover{ color:#fff; background:#111827; border-color:#111827; }
-  .btn-cta-green{ background: linear-gradient(90deg, var(--green) 0%, var(--green-2) 100%); border:0; color:#fff; }
+  <script>
+    // ---------- Question pools ----------
+    const yesNoPool = [
+      { id:"yn_happy",       text:"Do you feel happy or content today?",                          positive:true },
+      { id:"yn_irritated",   text:"Have you felt irritated or annoyed more than usual today?",   positive:false },
+      { id:"yn_refreshed",   text:"Did you wake up feeling refreshed this morning?",              positive:true },
+      { id:"yn_anxious",     text:"Have you felt anxious or worried without a clear reason?",    positive:false },
+      { id:"yn_enjoyed",     text:"Have you enjoyed the activities you did today?",              positive:true },
+      { id:"yn_tired",       text:"Are you feeling tired or low in energy right now?",           positive:false },
+      { id:"yn_overwhelmed", text:"Do you feel overwhelmed by your tasks today?",                 positive:false },
+      { id:"yn_motivated",   text:"Do you feel motivated to do things today?",                   positive:true },
+      { id:"yn_lonely",      text:"Have you been feeling lonely or disconnected?",               positive:false },
+      { id:"yn_calm",        text:"Do you feel calm and relaxed right now?",                     positive:true }
+    ];
 
-  .rounded-4{ border-radius:1rem; }
+    const mcqPool = [
+      {
+        id:"mcq_energy",
+        text:"How is your energy level today?",
+        reverse:false,
+        options:["Very high","Normal","Low","Very low"]
+      },
+      {
+        id:"mcq_stress",
+        text:"How has your stress level been today?",
+        reverse:true,
+        options:["No stress","A little stressed","Moderately stressed","Very stressed"]
+      },
+      {
+        id:"mcq_sleep",
+        text:"How well did you sleep last night?",
+        reverse:false,
+        options:["Very well","Okay","Poor","Very poor"]
+      },
+      {
+        id:"mcq_enjoy",
+        text:"How much have you enjoyed your day so far?",
+        reverse:false,
+        options:["A lot","Somewhat","Very little","Not at all"]
+      },
+      {
+        id:"mcq_social",
+        text:"How social do you feel today?",
+        reverse:false,
+        options:["Very social","Somewhat social","Prefer to be alone","Completely withdrawn"]
+      },
+      {
+        id:"mcq_irritated",
+        text:"How often have you felt irritated today?",
+        reverse:true,
+        options:["Not at all","A little","Often","Almost all day"]
+      },
+      {
+        id:"mcq_motivated",
+        text:"How motivated do you feel right now?",
+        reverse:false,
+        options:["Very motivated","Somewhat motivated","Not very motivated","Not motivated at all"]
+      },
+      {
+        id:"mcq_anxious",
+        text:"How anxious do you feel today?",
+        reverse:true,
+        options:["Not anxious","Slightly anxious","Moderately anxious","Highly anxious"]
+      },
+      {
+        id:"mcq_confident",
+        text:"How confident do you feel today?",
+        reverse:false,
+        options:["Very confident","Normal","Low","Very low"]
+      },
+      {
+        id:"mcq_day_mood",
+        text:"Overall, how would you rate today so far?",
+        reverse:false,
+        options:["Very good","Okay","A bit difficult","Very difficult"]
+      }
+    ];
 
-  .mood-grid{ display:grid; grid-template-columns: repeat(5,1fr); gap:.5rem; }
-  .mood-pill{ border:1px solid rgba(0,0,0,.08); border-radius:12px; padding:.6rem .5rem; cursor:pointer; display:flex; align-items:center; gap:.4rem; user-select:none; }
-  .mood-pill:hover{ background:#f8fafc; }
-  .mood-pill.active{ border-color:#16a34a; background:rgba(22,163,74,.08); }
-  .mood-emoji{ font-size:1.25rem; }
-  .mood-text{ font-size:.95rem; color:#111827; }
+    // ---------- Helpers ----------
+    function shuffle(arr){
+      const copy = [...arr];
+      for(let i=copy.length-1;i>0;i--){
+        const j = Math.floor(Math.random()*(i+1));
+        [copy[i],copy[j]] = [copy[j],copy[i]];
+      }
+      return copy;
+    }
 
-  .btn-chip{ border:1px dashed rgba(0,0,0,.18); background:#fff; color:#111827; padding:.25rem .5rem; border-radius:999px; }
-  .btn-chip:hover{ background:#111827; color:#fff; }
+    // ---------- Render questions ----------
+    const yesNoContainer = document.getElementById('yesNoQuestions');
+    const mcqContainer   = document.getElementById('mcqQuestions');
+    const moodPreview    = document.getElementById('moodPreview');
 
-  .breather{ position:relative; margin-top:1rem; padding:1rem; border:1px solid rgba(0,0,0,.06); border-radius:12px; text-align:center; }
-  .breather-circle{ width:80px; height:80px; border-radius:50%; margin:0 auto; background:radial-gradient(circle at 50% 50%, rgba(34,197,94,.25), rgba(34,197,94,.05)); transition: transform 4s ease-in-out; }
-  .breather.in .breather-circle{ transform: scale(1.15); }
-  .breather.out .breather-circle{ transform: scale(0.85); }
-  .breather-label{ margin-top:.5rem; color:#065f46; font-weight:600; }
+    function renderQuestions(){
+      // Yes/No: pick 5
+      yesNoContainer.innerHTML = "";
+      const ynSelected = shuffle(yesNoPool).slice(0,5);
+      ynSelected.forEach(q=>{
+        const wrapper = document.createElement('div');
+        wrapper.className = 'question-tile';
+        wrapper.innerHTML = `
+          <div class="question-text">${q.text}</div>
+          <div>
+            <label class="form-check">
+              <input class="form-check-input" type="radio" name="${q.id}" value="yes">
+              <span class="form-check-label">Yes</span>
+            </label>
+            <label class="form-check">
+              <input class="form-check-input" type="radio" name="${q.id}" value="no">
+              <span class="form-check-label">No</span>
+            </label>
+          </div>
+        `;
+        yesNoContainer.appendChild(wrapper);
+      });
 
-  /* Sparkline */
-  #sparkSvg .grid{ stroke:#e5e7eb; stroke-width:1; }
-  #sparkSvg .line{ stroke:var(--green); stroke-width:2; fill:none; }
-  #sparkSvg .area{ fill:rgba(34,197,94,.15); }
+      // MCQ: pick 4
+      mcqContainer.innerHTML = "";
+      const mcqSelected = shuffle(mcqPool).slice(0,4);
+      mcqSelected.forEach(q=>{
+        const wrapper = document.createElement('div');
+        wrapper.className = 'question-tile';
+        let optsHtml = "";
+        q.options.forEach((opt, idx)=>{
+          const optId = `${q.id}_${idx}`;
+          optsHtml += `
+            <label class="form-check">
+              <input class="form-check-input" type="radio"
+                     name="${q.id}" id="${optId}" value="${idx}">
+              <span class="form-check-label">${String.fromCharCode(97+idx)}) ${opt}</span>
+            </label>
+          `;
+        });
+        wrapper.innerHTML = `
+          <div class="question-text">${q.text}</div>
+          <div>${optsHtml}</div>
+        `;
+        mcqContainer.appendChild(wrapper);
+      });
+    }
 
-  /* Donut */
-  .donut-ring{ fill:transparent; stroke:#e5e7eb; stroke-width:3; }
-  .donut-slice{ fill:transparent; stroke-width:3; }
-  .dot{ display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:.3rem; }
-  .dot-cheerful{ background:var(--c-cheer); }
-  .dot-calm{ background:var(--c-calm); }
-  .dot-okay{ background:var(--c-okay); }
-  .dot-tired{ background:var(--c-tired); }
-  .dot-low{ background:var(--c-low); }
+    // ---------- Scoring & mood ----------
+    function computeMoodScore(){
+      const scores = [];
 
-  .nudge-tile{ border:1px solid rgba(0,0,0,.06); padding:.6rem .8rem; border-radius:12px; background:#f9fafb; }
-</style>
+      // Yes/No
+      yesNoPool.forEach(q=>{
+        const yes = document.querySelector(`input[name="${q.id}"][value="yes"]`);
+        const no  = document.querySelector(`input[name="${q.id}"][value="no"]`);
+        if(!yes || !no) return; // if not rendered
 
-<script>
-  // --- Quick tag inserter
-  const note = document.getElementById('noteBox');
-  document.querySelectorAll('.btn-chip').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const t = btn.getAttribute('data-insert');
-      note.value = (note.value ? note.value + ' ' : '') + '#' + t.replace(/\s+/g,'');
-      note.focus();
+        let val = null;
+        if(yes.checked) val = q.positive ? 1 : 0;
+        else if(no.checked) val = q.positive ? 0 : 1;
+
+        if(val !== null) scores.push(val);
+      });
+
+      // MCQ
+      mcqPool.forEach(q=>{
+        const radios = document.querySelectorAll(`input[name="${q.id}"]`);
+        if(!radios.length) return; // not rendered
+
+        let chosenIdx = null;
+        radios.forEach(r=>{
+          if(r.checked) chosenIdx = parseInt(r.value);
+        });
+        if(chosenIdx === null || isNaN(chosenIdx)) return;
+
+        const maxIdx = q.options.length - 1;
+        let norm = chosenIdx / maxIdx; // 0..1
+        norm = 1 - norm;               // 0 best -> 1, worst -> 0
+        scores.push(norm);
+      });
+
+      if(!scores.length) return 0.5; // neutral default
+      const sum = scores.reduce((a,b)=>a+b,0);
+      return sum / scores.length;
+    }
+
+    function mapScoreToMood(avg){
+      if(avg >= 0.80) return "😀 Cheerful";
+      if(avg >= 0.60) return "🙂 Calm";
+      if(avg >= 0.40) return "😐 Okay";
+      if(avg >= 0.25) return "😴 Tired";
+      return "🙁 Low";
+    }
+
+    function updateMoodPreview(){
+      const avg  = computeMoodScore();
+      const mood = mapScoreToMood(avg);
+      moodPreview.textContent = `Estimated mood: ${mood} (score ${avg.toFixed(2)})`;
+    }
+
+    document.addEventListener('change', e=>{
+      if(e.target.matches('input[type="radio"]')){
+        updateMoodPreview();
+      }
     });
-  });
 
-  // --- Journal prompt
-  const prompts = [
-    "One small thing that felt good today was…",
-    "A moment I felt calm was…",
-    "Someone I appreciated today was…",
-    "A song or smell that brought a memory was…",
-    "One step I can take tomorrow is…"
-  ];
-  document.getElementById('promptBtn').addEventListener('click', ()=>{
-    const p = prompts[Math.floor(Math.random()*prompts.length)];
-    if(!note.value) note.value = p; else note.value += (note.value.endsWith(' ')?'':' ') + p;
-    note.focus();
-  });
+    // ---------- Note helpers ----------
+    const noteBox   = document.getElementById('noteBox');
+    const promptBtn = document.getElementById('promptBtn');
 
-  // --- 1-minute breathing (simple inhale/exhale loop)
-  const breather = document.getElementById('breather');
-  const breathCircle = document.getElementById('breathCircle');
-  const breathLabel = document.getElementById('breathLabel');
-  const startBtn = document.getElementById('oneMinute');
-  const stopBtn = document.getElementById('breathStop');
-  let breathTimer = null, phase = 'in';
-
-  function cycle(){
-    breather.classList.remove('out'); breather.classList.add('in');
-    breathLabel.textContent = 'Breathe in…';
-    setTimeout(()=>{
-      breather.classList.remove('in'); breather.classList.add('out');
-      breathLabel.textContent = 'Breathe out…';
-    }, 4000);
-  }
-  startBtn.addEventListener('click', ()=>{
-    breather.classList.remove('d-none');
-    cycle();
-    breathTimer = setInterval(cycle, 8000);
-  });
-  stopBtn.addEventListener('click', ()=>{
-    if (breathTimer) clearInterval(breathTimer);
-    breather.classList.add('d-none');
-    breather.classList.remove('in','out');
-  });
-
-  // --- Build insights from notes (client-side only)
-  const rawNotes = {{ (data.notes or [])|tojson|safe }};
-  // map mood to score for sparkline
-  const m2s = {"😀 Cheerful":5,"🙂 Calm":4,"😐 Okay":3,"😴 Tired":2,"🙁 Low":1};
-  const last7 = rawNotes.slice(0,7).reverse().map(n=>m2s[n.mood]||3);
-  const W=520, H=120; const baseY = 110;
-  function buildSpark(arr){
-    if(arr.length===0){ arr=[3,3,3,3,3,3,3]; }
-    const step = (W / (arr.length-1));
-    const pts = arr.map((v,i)=>{
-      const y = baseY - ((v-1)/(5-1))*(baseY-20);
-      const x = i*step;
-      return `${x},${y}`;
+    const prompts = [
+      "One small thing that felt good today was…",
+      "A moment I felt calm was…",
+      "Someone I appreciated today was…",
+      "A song or smell that brought a memory was…",
+      "One step I can take tomorrow is…"
+    ];
+    promptBtn.addEventListener('click', ()=>{
+      const p = prompts[Math.floor(Math.random()*prompts.length)];
+      if(!noteBox.value) noteBox.value = p;
+      else noteBox.value += (noteBox.value.endsWith(' ')?'':' ') + p;
+      noteBox.focus();
     });
-    document.getElementById('sparkLine').setAttribute('points', pts.join(' '));
-    document.getElementById('sparkArea').setAttribute('points', `0,${baseY} ${pts.join(' ')} ${W},${baseY}`);
-  }
-  buildSpark(last7);
 
-  // donut distribution
-  const counts = {"😀 Cheerful":0,"🙂 Calm":0,"😐 Okay":0,"😴 Tired":0,"🙁 Low":0};
-  rawNotes.forEach(n=>{ if(counts[n.mood]!==undefined) counts[n.mood]++; });
-  const total = Object.values(counts).reduce((a,b)=>a+b,0) || 1;
-  const colors = {"😀 Cheerful":"var(--c-cheer)","🙂 Calm":"var(--c-calm)","😐 Okay":"var(--c-okay)","😴 Tired":"var(--c-tired)","🙁 Low":"var(--c-low)"};
-  const donut = document.getElementById('donut');
-  let offset = 25; // start angle (quarter turn)
-  Object.keys(counts).forEach(k=>{
-    const pct = counts[k]/total;
-    const slice = document.createElementNS('http://www.w3.org/2000/svg','circle');
-    slice.setAttribute('class','donut-slice');
-    slice.setAttribute('cx','21'); slice.setAttribute('cy','21'); slice.setAttribute('r','15.915');
-    slice.setAttribute('stroke', colors[k]);
-    slice.setAttribute('stroke-dasharray', `${(pct*100).toFixed(2)} ${100-(pct*100).toFixed(2)}`);
-    slice.setAttribute('stroke-dashoffset', `${offset}`);
-    donut.appendChild(slice);
-    offset -= pct*100;
-  });
-</script>
+    document.querySelectorAll('.btn-chip').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const t = btn.getAttribute('data-insert');
+        noteBox.value = (noteBox.value ? noteBox.value + ' ' : '') + '#' + t.replace(/\s+/g,'');
+        noteBox.focus();
+      });
+    });
 
-{% endblock %}
+    // ---------- Breathing ----------
+    const breather    = document.getElementById('breather');
+    const breathLabel = document.getElementById('breathLabel');
+    const oneMinute   = document.getElementById('oneMinute');
+    const breathStop  = document.getElementById('breathStop');
+    let breathTimer   = null;
+
+    function breathCycle(){
+      breather.classList.remove('out');
+      breather.classList.add('in');
+      breathLabel.textContent = 'Breathe in…';
+      setTimeout(()=>{
+        breather.classList.remove('in');
+        breather.classList.add('out');
+        breathLabel.textContent = 'Breathe out…';
+      }, 4000);
+    }
+
+    oneMinute.addEventListener('click', ()=>{
+      breather.classList.remove('hidden');
+      breathCycle();
+      breathTimer = setInterval(breathCycle, 8000);
+    });
+    breathStop.addEventListener('click', ()=>{
+      if(breathTimer) clearInterval(breathTimer);
+      breather.classList.add('hidden');
+      breather.classList.remove('in','out');
+    });
+
+    // ---------- History (localStorage, max 7) ----------
+    const STORAGE_KEY   = 'moodHistory_v1';
+    const historyDiv    = document.getElementById('historyContainer');
+    const entryCountEl  = document.getElementById('entryCount');
+    const lastMoodLabel = document.getElementById('lastMoodLabel');
+    const clearAllBtn   = document.getElementById('clearAll');
+
+    function loadHistory(){
+      try{
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if(!raw) return [];
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : [];
+      }catch(e){
+        console.error('Error reading history', e);
+        return [];
+      }
+    }
+
+    function saveHistory(list){
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    }
+
+    function addEntry(entry){
+      const list = loadHistory();
+      list.unshift(entry); // latest first
+      if(list.length > 7){
+        list.length = 7; // keep only first 7
+      }
+      saveHistory(list);
+    }
+
+    function renderHistory(){
+      const list = loadHistory();
+      entryCountEl.textContent = list.length.toString();
+
+      if(!list.length){
+        historyDiv.innerHTML = '<div class="small text-ink-70">No entries yet — save today’s mood to get started.</div>';
+        lastMoodLabel.textContent = 'Last entry: —';
+        buildSpark([]);
+        buildDonut([]);
+        return;
+      }
+
+      const newest = list[0];
+      lastMoodLabel.textContent = `Last entry: ${newest.mood} (${new Date(newest.ts).toLocaleString()})`;
+
+      const ul = document.createElement('ul');
+      ul.className = 'list';
+      list.forEach((item, idx)=>{
+        const li = document.createElement('li');
+        li.className = 'list-item';
+        li.innerHTML = `
+          <div>
+            <div class="pill-mood">${item.mood}</div>
+            ${item.note ? `<div class="small text-ink-80" style="margin-top:.15rem;">${item.note}</div>` : ''}
+            <div class="small text-ink-60" style="margin-top:.1rem;">${new Date(item.ts).toLocaleString()}</div>
+          </div>
+          <button class="btn btn-sm" data-del="${idx}" type="button">Delete</button>
+        `;
+        ul.appendChild(li);
+      });
+      historyDiv.innerHTML = '';
+      historyDiv.appendChild(ul);
+
+      historyDiv.querySelectorAll('button[data-del]').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const idx = parseInt(btn.getAttribute('data-del'));
+          const arr = loadHistory();
+          if(!isNaN(idx) && idx >= 0 && idx < arr.length){
+            arr.splice(idx,1);
+            saveHistory(arr);
+            renderHistory();
+          }
+        });
+      });
+
+      buildSpark(list);
+      buildDonut(list);
+    }
+
+    clearAllBtn.addEventListener('click', ()=>{
+      if(confirm('Clear all saved mood history?')){
+        localStorage.removeItem(STORAGE_KEY);
+        renderHistory();
+      }
+    });
+
+    // ---------- Charts ----------
+    const m2s = {"😀 Cheerful":5,"🙂 Calm":4,"😐 Okay":3,"😴 Tired":2,"🙁 Low":1};
+
+    function buildSpark(list){
+      const sparkLine = document.getElementById('sparkLine');
+      const sparkArea = document.getElementById('sparkArea');
+      const W = 520, baseY = 110;
+      let arr = list.map(e=>m2s[e.mood] || 3);
+      if(!arr.length) arr = [3,3,3,3,3,3,3];
+      const step = (arr.length === 1) ? 0 : (W / (arr.length-1));
+      const pts = arr.map((v,i)=>{
+        const y = baseY - ((v-1)/(5-1))*(baseY-20);
+        const x = i*step;
+        return `${x},${y}`;
+      });
+      sparkLine.setAttribute('points', pts.join(' '));
+      sparkArea.setAttribute('points', `0,${baseY} ${pts.join(' ')} ${W},${baseY}`);
+    }
+
+    function buildDonut(list){
+      const donut = document.getElementById('donut');
+      donut.querySelectorAll('.donut-slice').forEach(n=>n.remove());
+      const counts = {"😀 Cheerful":0,"🙂 Calm":0,"😐 Okay":0,"😴 Tired":0,"🙁 Low":0};
+      list.forEach(e=>{
+        if(counts[e.mood] !== undefined) counts[e.mood]++;
+      });
+      const total = Object.values(counts).reduce((a,b)=>a+b,0) || 1;
+      const colors = {
+        "😀 Cheerful":"var(--c-cheer)",
+        "🙂 Calm":"var(--c-calm)",
+        "😐 Okay":"var(--c-okay)",
+        "😴 Tired":"var(--c-tired)",
+        "🙁 Low":"var(--c-low)"
+      };
+      let offset = 25;
+      Object.keys(counts).forEach(key=>{
+        const val = counts[key];
+        const pct = val/total;
+        if(pct <= 0) return;
+        const slice = document.createElementNS('http://www.w3.org/2000/svg','circle');
+        slice.setAttribute('class','donut-slice');
+        slice.setAttribute('cx','21');
+        slice.setAttribute('cy','21');
+        slice.setAttribute('r','15.915');
+        slice.setAttribute('stroke', colors[key]);
+        slice.setAttribute('stroke-dasharray', `${(pct*100).toFixed(2)} ${100-(pct*100).toFixed(2)}`);
+        slice.setAttribute('stroke-dashoffset', `${offset}`);
+        donut.appendChild(slice);
+        offset -= pct*100;
+      });
+    }
+
+    // ---------- Form submit ----------
+    const moodForm = document.getElementById('moodForm');
+    moodForm.addEventListener('submit', e=>{
+      e.preventDefault();
+      const avg  = computeMoodScore();
+      const mood = mapScoreToMood(avg);
+      const note = noteBox.value.trim();
+
+      const entry = {
+        ts: new Date().toISOString(),
+        mood: mood,
+        score: avg,
+        note: note
+      };
+      addEntry(entry);
+      noteBox.value = "";
+      renderHistory();
+      alert(`Saved mood: ${mood}`);
+    });
+
+    // ---------- Init ----------
+    renderQuestions();
+    renderHistory();
+    updateMoodPreview();
+  </script>
+</body>
+</html>
