@@ -23,9 +23,9 @@ RECAPTCHA_SECRET_KEY = os.getenv("RECAPTCHA_SECRET_KEY", "6LfwdfwrAAAAAGOwW00J_K
 
 # Demo users (username -> {password, role})  roles: admin | patient | caretaker
 DEMO_USERS = {
-    "student":  {"password": "pass123",  "role": "patient"},
+    "patient":  {"password": "pass123",  "role": "patient"},
     "admin":  {"password": "admin123", "role": "admin"},
-    "guest":  {"password": "guest",    "role": "caretaker"},
+    "caretaker":  {"password": "guest",    "role": "caretaker"},
 }
 
 # ---- Optional: Customer Gallery config (used by patient gallery too) ----
